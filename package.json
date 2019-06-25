@@ -1,0 +1,24 @@
+{
+  "name": "pantabot",
+  "version": "1.0.0",
+  "description": "Panta (\"for all\") automates certain redundant project management tasks in Jira, such as",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mwroffo/pantabot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mwroffo/pantabot/issues"
+  },
+  "homepage": "https://github.com/mwroffo/pantabot#readme",
+  "dependencies": {
+    "commander": "^2.20.0",
+    "request": "^2.88.0"
+  }
+}
