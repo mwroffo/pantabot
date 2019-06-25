@@ -1,2 +1,2 @@
 # pantabot
-Panta ("for all") automates certain redundant project management tasks in Jira.
+Panta ("for all") automates certain redundant project management tasks in Jira, such as 
