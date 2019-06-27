@@ -1,0 +1,10 @@
+{
+    "title": "Test issue 1",
+    "body": "This is simply a test issue in zowe/file-transfer-app. Please ignore me.",
+    "assignees": [
+      "mwroffo"
+    ],
+    "labels": [
+      "bug"
+  ]
+}

@@ -18,7 +18,12 @@
   },
   "homepage": "https://github.com/mwroffo/pantabot#readme",
   "dependencies": {
+    "bluebird": "^3.5.5",
+    "cheerio": "0.22.0",
     "commander": "^2.20.0",
+    "github-api": "^3.2.2",
+    "js-base64": "^2.5.1",
+    "node-fetch": "^2.6.0",
     "request": "^2.88.0"
   }
 }

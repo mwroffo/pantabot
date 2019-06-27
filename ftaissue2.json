@@ -1,0 +1,10 @@
+{
+    "title": "Test issue 2",
+    "body": "This second test issue was produced using the github issues api via request.js. Please ignore me.",
+    "assignees": [
+      "mwroffo"
+    ],
+    "labels": [
+      "bug"
+    ] // TODO what about comments? project, epic, sprint, other metadata?
+}
