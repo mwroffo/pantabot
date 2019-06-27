@@ -1,0 +1,10 @@
+{
+    "title": "Test issue 2",
+    "body": "This is the second test issue in mwroffo/pantabot",
+    "assignees": [
+      "mwroffo"
+    ],
+    "labels": [
+      "bug"
+  ]
+}
