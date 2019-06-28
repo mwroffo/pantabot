@@ -25,5 +25,8 @@
     "js-base64": "^2.5.1",
     "node-fetch": "^2.6.0",
     "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "standard": "^12.0.1"
   }
 }
