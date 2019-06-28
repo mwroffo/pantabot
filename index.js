@@ -1,8 +1,15 @@
 const request = require('request');
 const GitHub = require('github-api');
-const token = '5cff57b4aa4f58530714a77a707616f33136f1b0';
 const Base64 = require('js-base64');
-let test_xml;
+const cheerio = require('cheerio');
+const jiraauth = {
+    username:'mroffo',
+    password:'Laper9133'
+}
+const githubauth = {
+    username:'mwroffo',
+    password:'Laper9133'
+}
 class Jira2Github {
 
     // TODO constructor (what are the JS practices?)
@@ -27,17 +34,17 @@ class Jira2Github {
     * @param {GithubIssue} [github_issue] - a json object specifying the issue to be posted to github.
     * @return {Promise} - the promise for the http request to the github api.
     */
-    postIssue(issue) {
+    postIssue(issue, repo) {
         // post the issue:
-        console.log(`posting issue:`);
+        console.log(`POSTING ISSUE:`);
         console.log(issue);
 
-        const gh = new GitHub({
-            username: 'mwroffo',
-            password: 'Laper9133'
-        });
-        const issues = gh.getIssues('zowe', 'file-transfer-app');
-        issues.createIssue(issue).then(data => console.log(data)).catch(err => {throw err;});
+        const gh = new GitHub(githubauth);
+        
+        // `Issue` wrapper, which extends `Requestable`, which encapsulates 
+        // a username/password pair or oauth token for github
+        const Issue = gh.getIssues('mwroffo', 'pantabot');
+        // Issue.createIssue(issue).then(data => console.log(data)).catch(err => {throw err;});
     }
 
     /* 
@@ -46,12 +53,11 @@ class Jira2Github {
     */
     fetchXML(issue_id, cb) {
         const url = `https://jira.rocketsoftware.com/si/jira.issueviews:issue-xml/${issue_id}/${issue_id}.xml`;
-
         const options = {
             url: url,
             headers: { 'User-Agent':''}
         }
-        request.get(options, cb).auth('mroffo','Laper9133');
+        request.get(options, cb).auth(jiraauth.username, jiraauth.password);
     }
 }
 
@@ -62,12 +68,25 @@ function main() {
     // parse jira_issue object to JSON
     const jira_issue = require('./' + process.argv[2]);
     const jira2Github = new Jira2Github();
-    let test_xml;
-    jira2Github.fetchXML('MVD-3017', (err,response,body) => {
+    jira2Github.fetchXML('MVD-3048', (err,response,body_xml) => {
         if (err) throw err;
         else {
-            test_xml = body;
-            console.log(test_xml);
+            // convertXMLIssue2GithubIssue
+            let githubissue = {};
+            // console.log(body_xml);
+            const $ = cheerio.load(body_xml, {xml: {normalizeWhitespace: true}});
+            githubissue.title = $('item title').text();
+            // TODO remove html tags from body
+            githubissue.body = $('item description').text();
+            // jira allows one assignee whereas github allows an array of assignees
+            githubissue.assignees = [$('item assignee').text()];
+            // dense, but each label element must be convert to string separately:
+            githubissue.labels = $('item labels').toArray().map(elem => $(elem).text());
+            // console.log('RESULTING GITHUB ISSUE IS:\n', githubissue);
+            // TODO june27 2019 labels should appear as strings in separate array indices
+            
+            // post github issue
+            jira2Github.postIssue(githubissue, 'file-transfer-app');
         }
     });
     // const github_issue = jira2Github.convert2GithubIssue(jira_issue);
