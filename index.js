@@ -1,5 +1,3 @@
-
-
 const JiraIssuePuller = require('./jira-issue-puller');
 const Jira2GithubConverter = require('./jira-to-github-converter');
 

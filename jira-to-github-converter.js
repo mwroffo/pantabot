@@ -1,4 +1,5 @@
 module.exports.convert2GithubIssue = convert2GithubIssue;
+module.exports.handleXML = handleXML;
 const GithubIssuePusher = require('./github-issue-pusher.js');
 const cheerio = require('cheerio');
 
@@ -35,6 +36,7 @@ function handleXML(err,response,body_xml) {
         // TODO june27 2019 labels should appear as strings in separate array indices
         
         // post github issue
+        console.log(`posting issue ${githubissue}`);
         GithubIssuePusher.postIssue(githubissue, process.argv[2], process.argv[3]);
     }
 }

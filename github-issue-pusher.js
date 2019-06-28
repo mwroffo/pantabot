@@ -1,9 +1,6 @@
-module.exports = postIssue;
+module.exports.postIssue = postIssue;
 const GitHub = require('github-api');
-const GITHUB_AUTH = {
-    username:'mwroffo',
-    password:'Laper9133'
-}
+const GITHUB_AUTH = require('./myauth.js').GITHUB_AUTH_BASIC;
 
 /*
 * Posts the {GithubIssue} to GitHub
