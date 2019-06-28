@@ -2,13 +2,13 @@ const request = require('request');
 const GitHub = require('github-api');
 const Base64 = require('js-base64');
 const cheerio = require('cheerio');
-const jiraauth = {
+const JIRA_AUTH = {
     username:'mroffo',
     password:'Laper9133'
 }
-const githubauth = {
+const GITHUB_AUTH = {
     username:'mwroffo',
-    password:'Laper9133'
+    password:JIRA_AUTH.password
 }
 class Jira2Github {
 
@@ -34,17 +34,17 @@ class Jira2Github {
     * @param {GithubIssue} [github_issue] - a json object specifying the issue to be posted to github.
     * @return {Promise} - the promise for the http request to the github api.
     */
-    postIssue(issue, repo) {
+    postIssue(issue, org_or_user, repo) {
         // post the issue:
         console.log(`POSTING ISSUE:`);
         console.log(issue);
 
-        const gh = new GitHub(githubauth);
+        const gh = new GitHub(GITHUB_AUTH);
         
         // `Issue` wrapper, which extends `Requestable`, which encapsulates 
         // a username/password pair or oauth token for github
-        const Issue = gh.getIssues('mwroffo', 'pantabot');
-        // Issue.createIssue(issue).then(data => console.log(data)).catch(err => {throw err;});
+        const Issue = gh.getIssues(GITHUB_AUTH.username, repo);
+        Issue.createIssue(issue).then(data => console.log(data)).catch(err => {throw err;});
     }
 
     /* 
@@ -57,7 +57,7 @@ class Jira2Github {
             url: url,
             headers: { 'User-Agent':''}
         }
-        request.get(options, cb).auth(jiraauth.username, jiraauth.password);
+        request.get(options, cb).auth(JIRA_AUTH.username, JIRA_AUTH.password);
     }
 }
 
@@ -66,9 +66,9 @@ module.exports = Jira2Github;
 // TEST CLIENT
 function main() {
     // parse jira_issue object to JSON
-    const jira_issue = require('./' + process.argv[2]);
+    // const jira_issue = require('./' + process.argv[2]);
     const jira2Github = new Jira2Github();
-    jira2Github.fetchXML('MVD-3048', (err,response,body_xml) => {
+    jira2Github.fetchXML('MVD-3049', (err,response,body_xml) => {
         if (err) throw err;
         else {
             // convertXMLIssue2GithubIssue
@@ -86,10 +86,14 @@ function main() {
             // TODO june27 2019 labels should appear as strings in separate array indices
             
             // post github issue
-            jira2Github.postIssue(githubissue, 'file-transfer-app');
+            jira2Github.postIssue(githubissue, process.argv[2], process.argv[3]);
         }
     });
     // const github_issue = jira2Github.convert2GithubIssue(jira_issue);
     // jira2Github.postIssue(github_issue); // post issue to github
 }
-main();
+
+// if this module is imported somewhere else, do not run main
+if (!module.parent) {
+    main();
+}
