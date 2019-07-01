@@ -1,4 +1,4 @@
-const rp = require('request-promise');
+const RequestPromise = require('request-promise');
 module.exports.fetchXML = fetchXML;
 const JIRA_AUTH = require('./myauth.js').JIRA_AUTH_BASIC;
 
@@ -10,12 +10,16 @@ const JIRA_AUTH = require('./myauth.js').JIRA_AUTH_BASIC;
 async function fetchXML(issue_id) {
     // issue_id = process.argv[3];
     const url = `https://jira.rocketsoftware.com/si/jira.issueviews:issue-xml/${issue_id}/${issue_id}.xml`;
-    console.log(`fetching xml from ${url}`);
+    
     const options = {
         url: url,
-        headers: { 'User-Agent':'' }
+        headers: { 
+            'User-Agent':''},
+        body: issue_id
     }
     try {
-        return await rp.get(options).auth(JIRA_AUTH.username, JIRA_AUTH.password);
+        const res = await RequestPromise.get(options).auth(JIRA_AUTH.username, JIRA_AUTH.password);
+        console.log(`(1) FETCHING XML from ${url}`);
+        return res;
     } catch (err) {throw err;}
 }

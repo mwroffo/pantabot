@@ -1,5 +1,6 @@
 module.exports.postIssue = postIssue;
 const GitHub = require('github-api');
+const RequestPromise = require('request-promise');
 const GITHUB_AUTH = require('./myauth.js').GITHUB_AUTH_BASIC;
 
 /*
@@ -8,18 +9,17 @@ const GITHUB_AUTH = require('./myauth.js').GITHUB_AUTH_BASIC;
 * @return {Promise} - the promise for the http request to the github api.
 */
 async function postIssue(issue, org_or_user, repo) {
-    // post the issue:
-    console.log(`POSTING ISSUE:`);
-    console.log(issue);
-
-    const gh = new GitHub(GITHUB_AUTH);
-
-    // `Issue` wrapper, which extends `Requestable`, which encapsulates 
-    // a username/password pair or oauth token for github
-    const Issue = gh.getIssues(GITHUB_AUTH.username, repo);
+    const url = `https://api.github.com/repos/${org_or_user}/${repo}/issues`;
+    const options = {
+        url: url,
+        headers: { 'User-Agent':'mwroffo' }
+    }
     try {
-        const json_response = await Issue.createIssue(issue);
-        console.log(json_response);
+        // post the issue:
+        console.log(`(3) POSTING ISSUE %s to %s/%s`, issue, org_or_user, repo);
+        const json_response = {}
+        json_response = await RequestPromise.post(options).auth(GITHUB_AUTH.username, GITHUB_AUTH.password, false);
+        console.log(`(4) POST ISSUE RESPONSE`, json_response);
         return json_response;
     } catch (err) {throw err;}
 }

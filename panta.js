@@ -22,11 +22,12 @@ function setupCLI() {
     }
 }
 
-function jira2github(issue_id, org_or_user, repo) {
-    const jira_issue_xml = JiraIssuePuller.fetchXML(issue_id);
+async function jira2github(issue_id, org_or_user, repo) {
+    const jira_issue_xml = await JiraIssuePuller.fetchXML(issue_id);
     const github_issue_json = Jira2GithubConverter.convertXMLIssue2GithubIssue(jira_issue_xml);
-    const response = GithubIssuePusher.postIssue(github_issue_json, org_or_user, repo);
-    console.log(response);
+    try {
+        const response = await GithubIssuePusher.postIssue(github_issue_json, org_or_user, repo);
+    } catch (err) {throw err;}
 }
 
 // if this module is imported somewhere else, do not run main
