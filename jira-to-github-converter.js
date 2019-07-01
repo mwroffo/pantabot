@@ -1,4 +1,4 @@
-module.exports.convert2GithubIssue = convert2GithubIssue;
+module.exports.convertXMLIssue2GithubIssue = convertXMLIssue2GithubIssue;
 module.exports.handleXML = handleXML;
 const GithubIssuePusher = require('./github-issue-pusher.js');
 const cheerio = require('cheerio');
@@ -8,15 +8,6 @@ const cheerio = require('cheerio');
 * @param {JiraIssue} [jira_issue] - the Jira issue to be converted
 * @return {GithubIssue} - a json object with fields corresponding to github fields.
 */
-function convert2GithubIssue(jira_issue) {
-    const github_issue = {
-        title: "test title",
-        body: jira_issue.fields.description,
-        assignees: ["test assignee"],
-        labels: ["bug"]
-    }
-    return github_issue;
-}
 
 function convertXMLIssue2GithubIssue(body_xml) {
     let githubissue = {};
