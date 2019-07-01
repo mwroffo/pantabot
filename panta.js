@@ -2,6 +2,7 @@
 
 const JiraIssuePuller = require('./jira-issue-puller');
 const Jira2GithubConverter = require('./jira-to-github-converter');
+const GithubIssuePusher = require('.github-issue-pusher');
 const program = require('commander');
 const pkg = require('./package.json')
 
@@ -11,14 +12,21 @@ function setupCLI() {
         .description(pkg.description)
         .usage('[options] <command> [...]');
     program
-        .command('j2g <JIRA_ISSUE_CODE> <USERNAME_OR_ORGANIZATION> <REPO>')
+        .command('j2g <issue_id> <org_or_user> <repo>')
         .description('Given a Jira issue as \'MVD-3048\', \'MVD-3051\', etc., posts that Jira issue to the specified zowe repo on GitHub.')
-        .action(JiraIssuePuller.fetchXML);
+        .action(jira2github);
     program.parse(process.argv);
     if (!program.args.filter(arg => typeof arg === 'object').length) {
         // if bad args,
         program.help(); // show help
     }
+}
+
+function jira2github(issue_id, org_or_user, repo) {
+    const jira_issue_xml = JiraIssuePuller.fetchXML(issue_id);
+    const github_issue_json = Jira2GithubConverter.convertXMLIssue2GithubIssue(jira_issue_xml);
+    const response = GithubIssuePusher.postIssue(github_issue_json, org_or_user, repo);
+    console.log(response);
 }
 
 // if this module is imported somewhere else, do not run main
