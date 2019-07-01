@@ -19,7 +19,6 @@ function setupCLI() {
         // if bad args,
         program.help(); // show help
     }
-    
 }
 
 // if this module is imported somewhere else, do not run main
