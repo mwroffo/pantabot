@@ -17,7 +17,6 @@ async function postIssue(issue, org_or_user, repo) {
     // `Issue` wrapper, which extends `Requestable`, which encapsulates 
     // a username/password pair or oauth token for github
     const Issue = gh.getIssues(GITHUB_AUTH.username, repo);
-    // Issue.createIssue(issue).then(data => console.log(data)).catch(err => {throw err;});
     try {
         const json_response = await Issue.createIssue(issue);
         console.log(json_response);
