@@ -1,5 +1,4 @@
 module.exports.convertXMLIssue2GithubIssue = convertXMLIssue2GithubIssue;
-module.exports.handleXML = handleXML;
 const GithubIssuePusher = require('./github-issue-pusher.js');
 const cheerio = require('cheerio');
 
