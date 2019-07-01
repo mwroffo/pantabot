@@ -1,7 +1,7 @@
 {
   "name": "pantabot",
   "version": "1.0.0",
-  "description": "Panta (\"for all\") automates certain redundant project management tasks in Jira, such as",
+  "description": "using the login you specify in myauth.js, panta helps to syncronize Jira issues with corresponding GitHub issues.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,7 +23,6 @@
     "commander": "^2.20.0",
     "github-api": "^3.2.2",
     "js-base64": "^2.5.1",
-    "node-fetch": "^2.6.0",
     "request": "^2.88.0"
   },
   "devDependencies": {
