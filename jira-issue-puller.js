@@ -15,5 +15,7 @@ async function fetchXML(issue_id) {
         url: url,
         headers: { 'User-Agent':'' }
     }
-    return await rp.get(options).auth(JIRA_AUTH.username, JIRA_AUTH.password);
+    try {
+        return await rp.get(options).auth(JIRA_AUTH.username, JIRA_AUTH.password);
+    } catch (err) {throw err;}
 }
