@@ -10,3 +10,10 @@ Nice to have:
 
 Really nice to have:
 [ ] accomplish this in reverse: Issues created on a zowe github repo by open-source contributors automatically prompt Sean Grady for inclusion in Rocket's internal Jira. (likely will be a separate Issue)
+
+## usage:
+Port a specified Jira issue into Github:
+`node panta j2g <JIRA_ISSUE_CODE> <USERNAME_OR_ORGANIZATION> <REPO>`
+
+## namesake:
+Zoe == 'wisdom' in Greek, panta == 'for all', thus zowe panta == 'wisdom for all'. @ActualSpeakersOfGreek please forgive errors.
