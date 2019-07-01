@@ -36,7 +36,9 @@ function handleXML(err,response,body_xml) {
         // TODO june27 2019 labels should appear as strings in separate array indices
         
         // post github issue
-        console.log(`posting issue ${githubissue}`);
-        GithubIssuePusher.postIssue(githubissue, process.argv[2], process.argv[3]);
+        console.log(`ISSUE CONVERTED ${githubissue}`);
+        const username_or_org = progress.argv[4];
+        const repo = process.argv[5];
+        GithubIssuePusher.postIssue(githubissue, username_or_org, repo);
     }
 }
