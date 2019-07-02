@@ -1,11 +1,13 @@
 'use strict';
 
+const Github = require('github-api');
 const cheerio = require('cheerio');
 const program = require('commander');
 const RequestPromise = require('request-promise');
 const Request = require('request');
 const Octokit = require('@octokit/rest');
 const GITHUB_AUTH = require('./myauth.js').GITHUB_AUTH;
+const JIRA_AUTH = require('./myauth.js').JIRA_AUTH_BASIC;
 const pkg = require('./package.json');
 
 function setupCLI() {
@@ -14,8 +16,8 @@ function setupCLI() {
         .description(pkg.description)
         .usage('[options] <command> [...]');
     program
-        .command('j2g <issue_id> <org_or_user> <repo>')
-        .description('Given a Jira issue as \'MVD-<id>\', posts that issue to <org_or_user>/<repo>.')
+        .command('j2g <issue_id> <orgOrUser> <repo>')
+        .description('Given a Jira issue as \'MVD-<id>\', posts that issue to <orgOrUser>/<repo>.')
         .action(jira2github);
     program
         .command('get-user')
@@ -31,14 +33,14 @@ function setupCLI() {
 /**
  * action function for j2g command runs fetchXML, convertXMLIssue2GithubIssue, then postIssue.
  * @param {} issue_id 
- * @param {*} org_or_user 
+ * @param {*} orgOrUser 
  * @param {*} repo 
  */
-async function jira2github(issue_id, org_or_user, repo) {
+async function jira2github(issue_id, orgOrUser, repo) {
     const jira_issue_xml = await fetchXML(issue_id);
     const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
     try {
-        const response = await postIssue(github_issue_json, org_or_user, repo);
+        const response = await postIssue(github_issue_json, orgOrUser, repo);
     } catch (err) {throw err;}
 }
 
@@ -88,48 +90,26 @@ function convertXMLIssue2GithubIssue(body_xml) {
 * @param {GithubIssue} [github_issue] - a json object specifying the issue to be posted to github.
 * @return {Promise} - the promise for the http request to the github api.
 */
-async function postIssue(issue, org_or_user, repo) {
-    const url = `https://api.github.com/repos/${org_or_user}/${repo}/issues`;
-    const options = {
-        url: url,
-        headers: { 'User-Agent':'mwroffo' },
-        body: issue,
-        json: true
-    }
+async function postIssue(issue, orgOrUser, repo) {
+    const gitHub = new Github(GITHUB_AUTH);
     try {
-        console.log(`(3) POSTING ISSUE to %s/%s`, org_or_user, repo);
-        //method1 gets same 404 response but throws useful information about 
+        console.log(`(3) POSTING ISSUE to %s/%s`, orgOrUser, repo);
         let json_response = {};
-        json_response = await RequestPromise.post(options).auth(
-            GITHUB_AUTH.username, GITHUB_AUTH.password, false, GITHUB_AUTH.bearer);
-            console.log(`(4) POST ISSUE RESPONSE`, json_response);
-        return json_response;
-        
-        //method2 gets 404 not found which to GH means unauthenticated
-        Request({
-                "url":"https://api.github.com/repos/mwroffo/pantabot/issues",
-            "method":"POST",
-            "headers": {
-                    "Authorization": GITHUB_AUTH.bearer,
-                "User-Agent":"mwroffo"
-            },
-            "body": JSON.stringify({ title: "Found a bug", body: "I'm having a problem  this." })
-            }, function(err, response, body) {
-                    console.log(response.statusCode, body);
-                    if (err) console.log(err);
-            }).auth(GITHUB_AUTH.username, GITHUB_AUTH.password, false, GITHUB_AUTH.bearer);
-            
-        } catch (err) {throw err;}
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        json_response = await Issue.createIssue(issue);
+        console.log(`(4) POST ISSUE RESPONSE`, json_response);
+        return json_response; 
+    } catch (err) {throw err;}
 }
 
-async function getUser(org_or_user) {
+async function getUser(orgOrUser) {
     const options = {
         url: 'https://api.github.com/user',
         headers: { 'User-Agent':'mwroffo' }
     }
     try {
         // method1 gets 400 probs parsing json
-        console.log(`READING USER ${org_or_user}`);
+        console.log(`READING USER ${orgOrUser}`);
         Request.get('https://api.github.com/user', options, (err,res,body) => {
             if (err) throw err;
             console.log(res.statusCode, body);
