@@ -4,7 +4,7 @@ We want Zowe to be an open-source project; but keeping the open-source community
 ## install:
 * install nodejs _globally_ on your machine: https://nodejs.org/en/download/
 * run `node --version` from your terminal to confirm that NodeJS v7.10.1 or newer is installed (https://node.green/#ES2017).
-* clone this repo: `git clone ssh://github.com/mwroffo/pantabot.git`
+* clone this repo: `git clone git@github.com:mwroffo/pantabot.git`
 * run `npm i`
 * should be good to go, but if not, please open an issue with a screenshot of your error message.
 
