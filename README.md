@@ -1,19 +1,17 @@
 # pantabot
-We want Zowe to be an open-source project; but keeping the open-source community updated on internal progress produces hours of tedium for project managers like Nolan Rogers and Scrum Masters like Reet Chowdhary who have to fill out GitHub issues manually. This tool (eventually a bot, perhaps) will automate the process of creating GitHub issues by fetching metadata for selected Jira issues, converting them into GitHub-friendly issues, and posting them to a corresponding repo under the Zowe organization on GitHub.
+We want Zowe to be an open-source project; but keeping the open-source community updated on internal progress produces hours of tedium for project managers like Nolan Rogers and Scrum Masters like Reet Chowdhary who have to fill out GitHub issues manually. This tool (eventually a bot, perhaps) automates the process of creating GitHub issues by fetching XML metadata for selected Jira issues, converting them into GitHub-friendly JSON issues, and posting them to a corresponding repo under a specified organization or user on GitHub.
 
-MVP:
-[ ] port a selected jira issue to github with a simple command-line interface. Hopefully mapping the statuses in both Jira and github
-[ ] add a basic UI for usability
-
-Nice to have:
-[ ] fetch JSON directly from Jira rather than parsing XML (which requires only ordinary permissions). mroffo is waiting on RAC ticket for Jira API access
-
-Really nice to have:
-[ ] accomplish this in reverse: Issues created on a zowe github repo by open-source contributors automatically prompt Sean Grady for inclusion in Rocket's internal Jira. (likely will be a separate Issue)
+## install:
+* install nodejs _globally_ on your machine: https://nodejs.org/en/download/
+* run `node --version` from your terminal to confirm that NodeJS v7.10.1 or newer is installed (https://node.green/#ES2017).
+* clone this repo: `git clone ssh://github.com/mwroffo/pantabot.git`
+* run `npm i`
+* should be good to go, but if not, please open an issue with a screenshot of your error message.
 
 ## usage:
+notation: <required_arg> [optional_arg]
 Port a specified Jira issue into Github:
-`node panta j2g <JIRA_ISSUE_CODE> <USERNAME_OR_ORGANIZATION> <REPO>`
+`node panta j2g <USERNAME_OR_ORGANIZATION> <REPO> <JIRA_ISSUE_CODE> [MORE_JIRA_ISSUE_CODES...]`
 
 ## namesake:
 Zoe == 'wisdom' in Greek, panta == 'for all', thus zowe panta == 'wisdom for all'. @ActualSpeakersOfGreek please forgive errors.
