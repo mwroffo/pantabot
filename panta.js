@@ -16,11 +16,16 @@ function setupCLI() {
         .description(pkg.description)
         .usage('[options] <command> [...]');
     program
-        .command('j2g <issue_id> <orgOrUser> <repo>')
-        .description('To post a Jira issue to github.com/<org_or_user>/<repo>, use `node panta <jira_issue_id> <org_or_user> <repo>`')
+        .command('j2g <issueID> <orgOrUser> <repo>')
+        .description('To post a Jira issue to github.com/<orgOrUser>/<repo>, use `node panta <jiraIssueID> <orgOrUser> <repo>`')
         .action(jira2github);
     program
-        .command('convert-issue <issue_id>')
+        .command('mult-j2g <orgOrUser> <repo> <issueID> [otherIssueIDs...]')
+        .option('-n, --no-post', 'Fetch, parse, and print passed issues without posting.')
+        .description('To post one or more Jira issues to github.com/<orgOrUser>/<repo>, use `node panta <orgOrUser> <repo> <issueIDs> [otherIssueIDs...]`')
+        .action(multijira2github);
+    program
+        .command('convert-issue <issueID>')
         .description('For testing purposes. Converts given jira issue into JSON and prints it.')
         .action(convertIssue)
     program
@@ -37,41 +42,54 @@ function setupCLI() {
 
 /**
  * action function for j2g command runs fetchXML, convertXMLIssue2GithubIssue, then postIssue.
- * @param {} issue_id 
+ * @param {} issueID 
  * @param {*} orgOrUser 
  * @param {*} repo 
  */
-async function jira2github(issue_id, orgOrUser, repo) {
-    const jira_issue_xml = await fetchXML(issue_id);
+async function jira2github(issueID, orgOrUser, repo) {
+    const jira_issue_xml = await fetchXML(issueID);
     const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
     try {
         const response = await postIssue(github_issue_json, orgOrUser, repo);
     } catch (err) {throw err;}
 }
 
-async function multijira2github(orgOrUser, repo, ...issue_ids) {
-    issue_ids.forEach(async issue_id => {
-        const jira_issue_xml = await fetchXML(issue_id);
-        const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
-        try {
-            // const response = await postIssue(github_issue_json, orgOrUser, repo);
-        } catch (err) {throw err;}
-    });
+async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
+    const jira_issue_xml = await fetchXML(issueID);
+    const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
+    try {
+        if (cmd.post) {
+            const response = await postIssue(github_issue_json, orgOrUser, repo);
+        }
+    } catch (err) {throw err;}
+
+    if (otherIssueIDs) {
+        otherIssueIDs.forEach(async issueID => { // Note: misnaming this as IssueID made JS reach outside this arrow function's scope for issueID
+            const jira_issue_xml = await fetchXML(issueID);
+            const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
+            try {
+                if (cmd.post) {
+                    const response = await postIssue(github_issue_json, orgOrUser, repo);
+                }
+            } catch (err) {throw err;}
+        });
+    }
+    console.log(`panta posted ${1+otherIssueIDs.length} issue(s). Bye!`)
 }
 
-async function convertIssue(issue_id) {
-    const jira_issue_xml = await fetchXML(issue_id);
+async function convertIssue(issueID) {
+    const jira_issue_xml = await fetchXML(issueID);
     const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
 }
 
 /* 
 * Takes a jira.rocketsoftware.com issue id and returns the issue in xml form
-* @param {string} [issue_id] the issue's id, for example MVD-3017
+* @param {string} [issueID] the issue's id, for example MVD-3017
 */
 
-async function fetchXML(issue_id) {
-    // issue_id = process.argv[3];
-    const url = `https://jira.rocketsoftware.com/si/jira.issueviews:issue-xml/${issue_id}/${issue_id}.xml`;
+async function fetchXML(issueID) {
+    // issueID = process.argv[3];
+    const url = `https://jira.rocketsoftware.com/si/jira.issueviews:issue-xml/${issueID}/${issueID}.xml`;
     
     const options = {
         url: url,
@@ -120,7 +138,7 @@ async function postIssue(issue, orgOrUser, repo) {
         let json_response = {};
         const Issue = gitHub.getIssues(orgOrUser, repo);
         json_response = await Issue.createIssue(issue);
-        console.log(`(4) POST ISSUE RESPONSE`, json_response);
+        console.log(`(4) POST ISSUE RESPONSE\n`, json_response.data.title, '\n', json_response.data.url, '\n');
         return json_response; 
     } catch (err) {throw err;}
 }
