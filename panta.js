@@ -16,11 +16,7 @@ function setupCLI() {
         .description(pkg.description)
         .usage('[options] <command> [...]');
     program
-        .command('j2g <issueID> <orgOrUser> <repo>')
-        .description('To post a Jira issue to github.com/<orgOrUser>/<repo>, use `node panta <jiraIssueID> <orgOrUser> <repo>`')
-        .action(jira2github);
-    program
-        .command('mult-j2g <orgOrUser> <repo> <issueID> [otherIssueIDs...]')
+        .command('j2g <orgOrUser> <repo> <issueID> [otherIssueIDs...]')
         .option('-n, --no-post', 'Fetch, parse, and print passed issues without posting.')
         .description('To post one or more Jira issues to github.com/<orgOrUser>/<repo>, use `node panta <orgOrUser> <repo> <issueIDs> [otherIssueIDs...]`')
         .action(multijira2github);
@@ -46,14 +42,6 @@ function setupCLI() {
  * @param {*} orgOrUser 
  * @param {*} repo 
  */
-async function jira2github(issueID, orgOrUser, repo) {
-    const jira_issue_xml = await fetchXML(issueID);
-    const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
-    try {
-        const response = await postIssue(github_issue_json, orgOrUser, repo);
-    } catch (err) {throw err;}
-}
-
 async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
     const jira_issue_xml = await fetchXML(issueID);
     const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
