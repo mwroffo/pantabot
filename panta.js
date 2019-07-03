@@ -17,7 +17,8 @@ function setupCLI() {
         .usage('[options] <command> [...]');
     program
         .command('j2g <orgOrUser> <repo> <issueID> [otherIssueIDs...]')
-        .option('-n, --no-post', 'Fetch, parse, and print passed issues without posting.')
+        .option('-d --debug', 'Show debugging output', false)
+        .option('-n --no-post', 'Fetch, parse, and print passed issues without posting.')
         .description('To post one or more Jira issues to github.com/<orgOrUser>/<repo>, use `node panta <orgOrUser> <repo> <issueIDs> [otherIssueIDs...]`')
         .action(multijira2github);
     program
@@ -43,27 +44,19 @@ function setupCLI() {
  * @param {*} repo 
  */
 async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
-    const jira_issue_xml = await fetchXML(issueID);
-    const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
-    try {
-        if (cmd.post) {
-            const response = await postIssue(github_issue_json, orgOrUser, repo);
-        }
-    } catch (err) {throw err;}
-    // this is how the commander.js docs demonstrate variadic args (https://github.com/tj/commander.js#variadic-arguments)
-    // seems rather redundant. consider refactoring with JS rest parameter.
+    // the commander.js docs demonstrate variadic args with one as required and others as optional
+    // (https://github.com/tj/commander.js#variadic-arguments)
+    otherIssueIDs.unshift(issueID); // combine into one array.
     if (otherIssueIDs) {
-        otherIssueIDs.forEach(async issueID => { // Note: misnaming this as IssueID made JS reach outside this arrow function's scope for issueID
-            const jira_issue_xml = await fetchXML(issueID);
-            const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
+        otherIssueIDs.forEach(async issueID => {
+            const jira_issue_xml = await fetchXML(issueID, cmd);
+            const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml, cmd);
             try {
-                if (cmd.post) {
-                    const response = await postIssue(github_issue_json, orgOrUser, repo);
-                }
+                const response = await postIssue(github_issue_json, orgOrUser, repo, cmd);
             } catch (err) {throw err;}
         });
     }
-    console.log(`panta posted ${1+otherIssueIDs.length} issue(s). Bye!`)
+    console.log(`panta is posting ${otherIssueIDs.length} issues to ${orgOrUser}/${repo}.`)
 }
 
 async function convertIssue(issueID) {
@@ -76,8 +69,7 @@ async function convertIssue(issueID) {
 * @param {string} [issueID] the issue's id, for example MVD-3017
 */
 
-async function fetchXML(issueID) {
-    // issueID = process.argv[3];
+async function fetchXML(issueID, cmd) {
     const url = `https://jira.rocketsoftware.com/si/jira.issueviews:issue-xml/${issueID}/${issueID}.xml`;
     
     const options = {
@@ -86,7 +78,7 @@ async function fetchXML(issueID) {
     }
     try {
         const res = await RequestPromise.get(options).auth(JIRA_AUTH.username, JIRA_AUTH.password);
-        console.log(`(1) FETCHING XML from ${url}`);
+        if (cmd.debug) console.log(`(1) FETCHING XML from ${url}`);
         return res;
     } catch (err) {throw err;}
 }
@@ -97,7 +89,7 @@ async function fetchXML(issueID) {
 * @return {GithubIssue} - a json object with fields corresponding to github fields.
 */
 
-function convertXMLIssue2GithubIssue(body_xml) {
+function convertXMLIssue2GithubIssue(body_xml, cmd) {
     let githubissue = {};
     const $ = cheerio.load(body_xml, {xml: {normalizeWhitespace: true}});
     let title = $('item title').text();
@@ -111,7 +103,7 @@ function convertXMLIssue2GithubIssue(body_xml) {
 
     // TODO june27 2019 labels should appear as strings in separate array indices
 
-    console.log(`(2) ISSUE CONVERTED`, githubissue);
+    if (cmd.debug) console.log(`(2) ISSUE CONVERTED`, githubissue);
     return githubissue;
 }
 
@@ -120,15 +112,19 @@ function convertXMLIssue2GithubIssue(body_xml) {
 * @param {GithubIssue} [github_issue] - a json object specifying the issue to be posted to github.
 * @return {Promise} - the promise for the http request to the github api.
 */
-async function postIssue(issue, orgOrUser, repo) {
+async function postIssue(issue, orgOrUser, repo, cmd) {
     const gitHub = new Github(GITHUB_AUTH);
     try {
-        console.log(`(3) POSTING ISSUE to %s/%s`, orgOrUser, repo);
+        if (cmd.debug) {
+            console.log(`(3) POSTING ISSUE to %s/%s`, orgOrUser, repo);
+        }
         let json_response = {};
         const Issue = gitHub.getIssues(orgOrUser, repo);
-        json_response = await Issue.createIssue(issue);
-        console.log(`(4) POST ISSUE RESPONSE\n`, json_response.data.title, '\n', json_response.data.url, '\n');
-        return json_response; 
+        if (cmd.post) {
+            json_response = await Issue.createIssue(issue);
+            console.log(`(4) POST ISSUE RESPONSE`, json_response.data.title, '\t\t', json_response.data.url);
+        } else { console.log(`--no-post option is set. not posting ${issue.title}`)}
+        return json_response;
     } catch (err) {throw err;}
 }
 
