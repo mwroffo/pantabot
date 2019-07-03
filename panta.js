@@ -17,15 +17,20 @@ function setupCLI() {
         .usage('[options] <command> [...]');
     program
         .command('j2g <issue_id> <orgOrUser> <repo>')
-        .description('Given a Jira issue as \'MVD-<id>\', posts that issue to <orgOrUser>/<repo>.')
+        .description('To post a Jira issue to github.com/<org_or_user>/<repo>, use `node panta <jira_issue_id> <org_or_user> <repo>`')
         .action(jira2github);
     program
+        .command('convert-issue <issue_id>')
+        .description('For testing purposes. Converts given jira issue into JSON and prints it.')
+        .action(convertIssue)
+    program
         .command('get-user')
-        .description('Prints information about a given github user.')
+        .description('For testing purposes. Prints information about a given github user.')
         .action(getUser);
     program.parse(process.argv);
     if (!program.args.filter(arg => typeof arg === 'object').length) {
         // if bad args,
+        console.log('Did you enter the arguments correctly?')
         program.help(); // show help
     }
 }
@@ -42,6 +47,21 @@ async function jira2github(issue_id, orgOrUser, repo) {
     try {
         const response = await postIssue(github_issue_json, orgOrUser, repo);
     } catch (err) {throw err;}
+}
+
+async function multijira2github(orgOrUser, repo, ...issue_ids) {
+    issue_ids.forEach(async issue_id => {
+        const jira_issue_xml = await fetchXML(issue_id);
+        const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
+        try {
+            // const response = await postIssue(github_issue_json, orgOrUser, repo);
+        } catch (err) {throw err;}
+    });
+}
+
+async function convertIssue(issue_id) {
+    const jira_issue_xml = await fetchXML(issue_id);
+    const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
 }
 
 /* 
@@ -73,11 +93,14 @@ async function fetchXML(issue_id) {
 function convertXMLIssue2GithubIssue(body_xml) {
     let githubissue = {};
     const $ = cheerio.load(body_xml, {xml: {normalizeWhitespace: true}});
-    githubissue.title = $('item title').text();
+    let title = $('item title').text();
+    title = title.replace(/\[.*\] */g, ''); // remove '[MVD-3038]' etc from title
+    githubissue.title = title;
     githubissue.body = $('item description').text();
+
     // jira allows one assignee whereas github allows an array of assignees
-    githubissue.assignees = [$('item assignee').text()];
-    githubissue.labels = $('item labels').toArray().map(elem => $(elem).text());
+    // githubissue.assignees = [$('item assignee').text()];
+    // githubissue.labels = $('item labels').toArray().map(elem => $(elem).text());
 
     // TODO june27 2019 labels should appear as strings in separate array indices
 
