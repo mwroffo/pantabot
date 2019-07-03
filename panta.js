@@ -122,7 +122,8 @@ async function postIssue(issue, orgOrUser, repo, cmd) {
         const Issue = gitHub.getIssues(orgOrUser, repo);
         if (cmd.post) {
             json_response = await Issue.createIssue(issue);
-            console.log(`(4) POST ISSUE RESPONSE`, json_response.data.title, '\t\t', json_response.data.url);
+            const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'')
+            console.log(`(4) POST ISSUE RESPONSE`, json_response.data.title, '\t\t', public_url);
         } else { console.log(`--no-post option is set. not posting ${issue.title}`)}
         return json_response;
     } catch (err) {throw err;}
