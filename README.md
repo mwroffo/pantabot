@@ -11,6 +11,7 @@ We want Zowe to be an open-source project; but keeping the open-source community
 ## usage:
 notation: <required_arg> [optional_arg]
 Port a specified Jira issue into Github:
+
 `node panta j2g <USERNAME_OR_ORGANIZATION> <REPO> <JIRA_ISSUE_CODE> [MORE_JIRA_ISSUE_CODES...]`
 
 ## namesake:
