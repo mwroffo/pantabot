@@ -62,7 +62,8 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
             const response = await postIssue(github_issue_json, orgOrUser, repo);
         }
     } catch (err) {throw err;}
-
+    // this is how the commander.js docs demonstrate variadic args (https://github.com/tj/commander.js#variadic-arguments)
+    // seems rather redundant. consider refactoring with JS rest parameter.
     if (otherIssueIDs) {
         otherIssueIDs.forEach(async issueID => { // Note: misnaming this as IssueID made JS reach outside this arrow function's scope for issueID
             const jira_issue_xml = await fetchXML(issueID);
