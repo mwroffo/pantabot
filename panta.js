@@ -6,9 +6,11 @@ const program = require('commander');
 const RequestPromise = require('request-promise');
 const Request = require('request');
 const Octokit = require('@octokit/rest');
+
 const GITHUB_AUTH = require('./myauth.js').GITHUB_AUTH;
 const JIRA_AUTH = require('./myauth.js').JIRA_AUTH_BASIC;
 const pkg = require('./package.json');
+const USERNAMES_MAP = require('./usernames-map.json');
 
 function setupCLI() {
     program
@@ -97,8 +99,6 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
     githubissue.title = title;
     githubissue.body = $('item description').text();
 
-    // jira allows one assignee whereas github allows an array of assignees
-    // githubissue.assignees = [$('item assignee').text()];
     // githubissue.labels = $('item labels').toArray().map(elem => $(elem).text());
 
     // TODO june27 2019 labels should appear as strings in separate array indices
