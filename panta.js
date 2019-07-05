@@ -51,10 +51,13 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
     otherIssueIDs.unshift(issueID); // combine into one array.
     if (otherIssueIDs) {
         otherIssueIDs.forEach(async issueID => {
-            const jira_issue_xml = await fetchXML(issueID, cmd);
-            const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml, cmd);
+            const jiraIssueXML = await fetchXML(issueID, cmd);
+            const githubIssueJSON = convertXMLIssue2GithubIssue(jiraIssueXML, cmd);
+            const comments = githubIssueJSON.comments;
+            githubIssueJSON.comments = undefined;
             try {
-                const response = await postIssue(github_issue_json, orgOrUser, repo, cmd);
+                const issueNumber = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
+                const commentsResponse = await addComments(issueNumber, comments, orgOrUser, repo, cmd);
             } catch (err) {throw err;}
         });
     }
@@ -62,8 +65,8 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
 }
 
 async function convertIssue(issueID) {
-    const jira_issue_xml = await fetchXML(issueID);
-    const github_issue_json = convertXMLIssue2GithubIssue(jira_issue_xml);
+    const jiraIssueXML = await fetchXML(issueID);
+    const githubIssueJSON = convertXMLIssue2GithubIssue(jiraIssueXML);
 }
 
 /* 
@@ -103,6 +106,8 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
 
     // TODO june27 2019 labels should appear as strings in separate array indices
 
+    githubissue.comments = $('item comments comment').toArray().map(elem => $(elem).text());
+
     if (cmd.debug) console.log(`(2) ISSUE CONVERTED`, githubissue);
     return githubissue;
 }
@@ -122,9 +127,30 @@ async function postIssue(issue, orgOrUser, repo, cmd) {
         const Issue = gitHub.getIssues(orgOrUser, repo);
         if (cmd.post) {
             json_response = await Issue.createIssue(issue);
-            const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'')
+            const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
             console.log(`(4) POST ISSUE RESPONSE`, json_response.data.title, '\t\t', public_url);
-        } else { console.log(`--no-post option is set. not posting ${issue.title}`)}
+        } else { console.log(`--no-post option is set. Issues and their comments do not post. '${issue.title}'`) }
+        return json_response.data.number;
+    } catch (err) {throw err;}
+}
+
+async function addComments(issueNumber, comments, orgOrUser, repo, cmd) {
+    const gitHub = new Github(GITHUB_AUTH);
+    try {
+        if (cmd.debug) {
+            console.log(`(5) ADDING COMMENTS to %s/%s`, orgOrUser, repo);
+        }
+        let json_response = {};
+        const Issue = await gitHub.getIssues(orgOrUser, repo);
+        if (cmd.post) {
+            comments.forEach(async comment => {
+                if (cmd.debug) {
+                    console.log(`adding comment ${comment} to issue#${issueNumber}`);
+                }
+                json_response = await Issue.createIssueComment(issueNumber, comment);
+                console.log(`(5) POST COMMENT RESPONSE`, json_response.statusCode, '\t', json_response.data.body);
+            });
+        }
         return json_response;
     } catch (err) {throw err;}
 }
