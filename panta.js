@@ -99,7 +99,7 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
     githubissue.title = title;
     githubissue.body = $('item description').text();
 
-    // githubissue.labels = $('item labels').toArray().map(elem => $(elem).text());
+    githubissue.labels = $('item labels label').toArray().map(elem => $(elem).text());
 
     // TODO june27 2019 labels should appear as strings in separate array indices
 
