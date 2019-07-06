@@ -2,9 +2,10 @@
   "name": "pantabot",
   "version": "0.1.0",
   "description": "Using the login you specify in myauth.js, panta helps to syncronize Jira issues with corresponding GitHub issues.",
-  "main": "index.js",
+  "main": "panta.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
   },
   "repository": {
     "type": "git",
