@@ -1,5 +1,6 @@
 'use strict';
 
+const UI = require("./ui.js");
 const Github = require('github-api');
 const cheerio = require('cheerio');
 const program = require('commander');
@@ -201,6 +202,7 @@ async function getUser(orgOrUser) {
 }
 
 // if this module is imported somewhere else, do not run main
-if (!module.parent) {
+if (!module.parent) { // i.e. when using electron, don't set up the CLI.
     setupCLI();
 }
+UI.buildUI();
