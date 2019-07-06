@@ -57,13 +57,13 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
             const comments = githubIssueJSON.comments;
             githubIssueJSON.comments = undefined;
             try {
-                let duplicate = checkForDuplicate(alreadyExistingIssues, githubIssueJSON.title);
                 if (cmd.post) {
+                    let duplicate = checkForDuplicate(alreadyExistingIssues, githubIssueJSON.title);
                     if (!duplicate) {
                         const issueNumber = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
                         const commentsResponse = await addComments(issueNumber, comments, orgOrUser, repo, cmd);
                     } else { console.log(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`) }  
-            } else { console.log(`--no-post option is set. Issues and their comments do not post. '${issue.title}'`) }
+                } else { console.log(`--no-post option is set. Issues and their comments do not post. '${issue.title}'`) }
             } catch (err) {throw err;}
         });
     }
