@@ -3,29 +3,32 @@
   <head>
     <meta charset="UTF-8">
     <title>pantabot</title>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <h1>Panta</h1>
+    <p>Note: Authentication may be specified below or in myauth.js. [DO NOT COMMIT myauth.js TO GITHUB]</p>
+
     <form name="ipcForm" onSubmit="JavaScript:sendForm(event)">
       Jira username:<br>
-      <input type="text" name="jira-username" id="jira-username" value="jiraappleseed"><br>
+      <input type="text" name="jira-username" id="jira-username"><br>
       Jira password:<br>
       <input type="password" name="jira-password" id="jira-password"><br>
       Github username:<br>
-      <input type="text" name="github-username" id="github-username" value="githubappleseed"><br>
+      <input type="text" name="github-username" id="github-username"><br>
       Github password:<br>
       <input type="password" name="github-password" id="github-password"><br>
 
       <label>Posting issue(s) to https://github.com/owner/repo</label><br>
 
       owner of repo (i.e. an organization or user):<br>
-      <input type="text" name="owner" id="owner" value="owner of some repo"><br>
+      <input type="text" name="owner" id="owner" value="mwroffo"><br>
       existing repo:<br>
-      <input type="text" name="repo" id="repo" value="some repo"><br>
+      <input type="text" name="repo" id="repo" value="asdf"><br>
       
       Jira issue codes, separated by spaces:<br>
       For example: "MVD-3048 MVD-3060 MVD-3070"<br>
-      <input type="text" name="jira-issue-codes" id="jira-issue-codes"><br>
+      <input type="text" name="jira-issue-codes" id="jira-issue-codes" value="MVD-3048 MVD-3060"><br>
       <br>
       <input type="submit" value="Post Jira issues to Github">
   </form>
