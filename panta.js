@@ -7,8 +7,8 @@ const RequestPromise = require('request-promise');
 const Request = require('request');
 const Octokit = require('@octokit/rest');
 
-const GITHUB_AUTH = require('./myauth.js').GITHUB_AUTH;
-const JIRA_AUTH = require('./myauth.js').JIRA_AUTH_BASIC;
+const GITHUB_CONF = require('./config.js').GITHUB_CONF;
+const JIRA_CONF = require('./config.js').JIRA_CONF;
 const pkg = require('./package.json');
 const USERNAMES_MAP = require('./usernames-map.json');
 
@@ -40,7 +40,7 @@ function setupCLI() {
 }
 
 /**
- * action function for j2g command runs fetchXML, convertXMLIssue2GithubIssue, then postIssue.
+ * action function for j2g command. handles logic of porting a jira issue to github.
  * @param {} issueID 
  * @param {*} orgOrUser 
  * @param {*} repo 
@@ -48,6 +48,7 @@ function setupCLI() {
 async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
     // the commander.js docs demonstrate variadic args with one as required and others as optional
     // (https://github.com/tj/commander.js#variadic-arguments)
+    const alreadyExistingIssues = await listIssues(orgOrUser, repo); // returns an array of issues. titles don't include prefixes.
     otherIssueIDs.unshift(issueID); // combine into one array.
     if (otherIssueIDs) {
         otherIssueIDs.forEach(async issueID => {
@@ -56,8 +57,12 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
             const comments = githubIssueJSON.comments;
             githubIssueJSON.comments = undefined;
             try {
-                const issueNumber = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
-                const commentsResponse = await addComments(issueNumber, comments, orgOrUser, repo, cmd);
+                if (cmd.post) {
+                    let duplicate = checkForDuplicate(alreadyExistingIssues, githubIssueJSON.title);
+                    if (!duplicate) {
+                        const issueNumber = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
+                    } else { console.log(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`) }  
+                } else { console.log(`--no-post option is set. Issues and their comments do not post. '${issue.title}'`) }
             } catch (err) {throw err;}
         });
     }
@@ -75,14 +80,16 @@ async function convertIssue(issueID) {
 */
 
 async function fetchXML(issueID, cmd) {
+    // EDIT THIS LINE to reflect your Jira instance's XML link
     const url = `https://jira.rocketsoftware.com/si/jira.issueviews:issue-xml/${issueID}/${issueID}.xml`;
-    
+    // EDIT THIS LINE to reflect your Jira instance's XML link
+
     const options = {
         url: url,
         headers: {'User-Agent':'mwroffo'}
     }
     try {
-        const res = await RequestPromise.get(options).auth(JIRA_AUTH.username, JIRA_AUTH.password);
+        const res = await RequestPromise.get(options).auth(JIRA_CONF.username, JIRA_CONF.password);
         if (cmd.debug) console.log(`(1) FETCHING XML from ${url}`);
         return res;
     } catch (err) {throw err;}
@@ -118,41 +125,35 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
 * @return {Promise} - the promise for the http request to the github api.
 */
 async function postIssue(issue, orgOrUser, repo, cmd) {
-    const gitHub = new Github(GITHUB_AUTH);
+    const gitHub = new Github(GITHUB_CONF);
     try {
         if (cmd.debug) {
             console.log(`(3) POSTING ISSUE to %s/%s`, orgOrUser, repo);
         }
         let json_response = {};
         const Issue = gitHub.getIssues(orgOrUser, repo);
-        if (cmd.post) {
-            json_response = await Issue.createIssue(issue);
-            const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
-            console.log(`(4) POST ISSUE RESPONSE`, json_response.data.title, '\t\t', public_url);
-        } else { console.log(`--no-post option is set. Issues and their comments do not post. '${issue.title}'`) }
+        json_response = await Issue.createIssue(issue);
+        const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
+        console.log(`(4) POST ISSUE RESPONSE`, json_response.data.title, '\t\t', public_url);
         return json_response.data.number;
     } catch (err) {throw err;}
 }
 
-async function addComments(issueNumber, comments, orgOrUser, repo, cmd) {
-    const gitHub = new Github(GITHUB_AUTH);
-    try {
-        if (cmd.debug) {
-            console.log(`(5) ADDING COMMENTS to %s/%s`, orgOrUser, repo);
+async function listIssues(orgOrUser, repo) {
+    const github = new Github(GITHUB_CONF);
+    const Issue = github.getIssues(orgOrUser, repo);
+    let issues = await Issue.listIssues();
+    return issues.data;
+}
+
+function checkForDuplicate(issues, title) {
+    let toReturn = undefined;
+    issues.forEach(issue => {
+        if (issue.title === title) {
+            toReturn = issue;
         }
-        let json_response = {};
-        const Issue = await gitHub.getIssues(orgOrUser, repo);
-        if (cmd.post) {
-            comments.forEach(async comment => {
-                if (cmd.debug) {
-                    console.log(`adding comment ${comment} to issue#${issueNumber}`);
-                }
-                json_response = await Issue.createIssueComment(issueNumber, comment);
-                console.log(`(5) POST COMMENT RESPONSE`, json_response.statusCode, '\t', json_response.data.body);
-            });
-        }
-        return json_response;
-    } catch (err) {throw err;}
+    });
+    return toReturn;
 }
 
 async function getUser(orgOrUser) {
@@ -167,12 +168,12 @@ async function getUser(orgOrUser) {
             if (err) throw err;
             console.log(res.statusCode, body);
         })
-        .auth(GITHUB_AUTH.username, GITHUB_AUTH.password) // 200 resp
-        // .auth(null, null, false, GITHUB_AUTH.bearer); // 401 requires auth
+        .auth(GITHUB_CONF.username, GITHUB_CONF.password) // 200 resp
+        // .auth(null, null, false, GITHUB_CONF.bearer); // 401 requires auth
         
         // method2 gets 401
         // let json_response = {};
-        // json_response = await RequestPromise.get(options).auth(GITHUB_AUTH.username, GITHUB_AUTH.password, false, GITHUB_AUTH.bearer);
+        // json_response = await RequestPromise.get(options).auth(GITHUB_CONF.username, GITHUB_CONF.password, false, GITHUB_CONF.bearer);
         // json_response = await octokit.users.listNotifications(all=true);
         // console.log(`getuser response`, json_response);
         // return json_response;
