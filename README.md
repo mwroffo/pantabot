@@ -1,5 +1,5 @@
 # pantabot
-We want Zowe to be an open-source project; but keeping the open-source community updated on internal progress produces hours of tedium for project managers like Nolan Rogers and Scrum Masters like Reet Chowdhary who have to fill out GitHub issues manually. This tool (eventually a bot, perhaps) automates the process of creating GitHub issues by fetching XML metadata for selected Jira issues, converting them into GitHub-friendly JSON issues, and posting them to a corresponding repo under a specified organization or user on GitHub.
+We want Zowe to be an open-source project; but keeping the open-source community updated on progress produces hours of tedium for project managers and Scrum Masters who have to fill out GitHub issues manually. This tool (eventually a bot, perhaps) automates the process of creating GitHub issues by fetching XML metadata for selected Jira issues, converting them into GitHub-friendly JSON issues, and posting them to a corresponding repo under a specified organization or user on GitHub.
 
 ## install:
 * install nodejs _globally_ on your machine: https://nodejs.org/en/download/
