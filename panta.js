@@ -9,7 +9,7 @@ const Request = require('request');
 const Octokit = require('@octokit/rest');
 
 const GITHUB_AUTH = require('./myauth.js').GITHUB_AUTH;
-const JIRA_AUTH = require('./myauth.js').JIRA_AUTH_BASIC;
+const JIRA_AUTH = require('./myauth.js').JIRA_AUTH;
 const pkg = require('./package.json');
 const USERNAMES_MAP = require('./usernames-map.json');
 
@@ -63,7 +63,7 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
                     if (!duplicate) {
                         const issueNumber = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
                     } else { console.log(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`) }  
-            } else { console.log(`--no-post option is set. Issues and their comments do not post. '${issue.title}'`) }
+                } else { console.log(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`) }
             } catch (err) {throw err;}
         });
     }
@@ -111,8 +111,6 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
     githubissue.labels = $('item labels label').toArray().map(elem => $(elem).text());
 
     // TODO june27 2019 labels should appear as strings in separate array indices
-
-    githubissue.comments = $('item comments comment').toArray().map(elem => $(elem).text());
 
     if (cmd.debug) console.log(`(2) ISSUE CONVERTED`, githubissue);
     return githubissue;
