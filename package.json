@@ -23,8 +23,10 @@
     "bluebird": "^3.5.5",
     "cheerio": "0.22.0",
     "commander": "^2.20.0",
+    "electron": "^5.0.6",
     "github-api": "^3.2.2",
     "js-base64": "^2.5.1",
+    "path": "^0.12.7",
     "request": "^2.88.0",
     "request-promise": "^4.2.4"
   },
