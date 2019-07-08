@@ -5,19 +5,32 @@
     <title>pantabot</title>
   </head>
   <body>
-    <h1>hello pantabot1!</h1>
-    <form action="http://foo.com" method="get">
-      <div>
-        <label for="say">What greeting do you want to say?</label>
-        <input name="say" id="say" value="Hi">
-      </div>
-      <div>
-        <label for="to">Who do you want to say it to?</label>
-        <input name="to" id="to" value="Mom">
-      </div>
-      <div>
-        <button>Send my greetings</button>
-      </div>
-    </form>
+    <h1>Panta</h1>
+    <form name="ipcForm" onSubmit="JavaScript:sendForm(event)">
+      Jira username:<br>
+      <input type="text" name="jira-username" id="jira-username" value="jiraappleseed"><br>
+      Jira password:<br>
+      <input type="password" name="jira-password" id="jira-password"><br>
+      Github username:<br>
+      <input type="text" name="github-username" id="github-username" value="githubappleseed"><br>
+      Github password:<br>
+      <input type="password" name="github-password" id="github-password"><br>
+
+      <label>Posting issue(s) to https://github.com/owner/repo</label><br>
+
+      owner of repo (i.e. an organization or user):<br>
+      <input type="text" name="owner" id="owner" value="owner of some repo"><br>
+      existing repo:<br>
+      <input type="text" name="repo" id="repo" value="some repo"><br>
+      
+      Jira issue codes, separated by spaces:<br>
+      For example: "MVD-3048 MVD-3060 MVD-3070"<br>
+      <input type="text" name="jira-issue-codes" id="jira-issue-codes"><br>
+      <br>
+      <input type="submit" value="Post Jira issues to Github">
+  </form>
+
+  <script src='renderFile.js'></script>
+
   </body>
 </html>
