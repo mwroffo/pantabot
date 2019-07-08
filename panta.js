@@ -50,7 +50,7 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
     // the commander.js docs demonstrate variadic args with one as required and others as optional
     // (https://github.com/tj/commander.js#variadic-arguments)
     const alreadyExistingIssues = await listIssues(orgOrUser, repo); // returns an array of issues. titles don't include prefixes.
-    otherIssueIDs.unshift(issueID); // combine into one array.
+    if (issueID) otherIssueIDs.unshift(issueID); // combine into one array.
     if (otherIssueIDs) {
         otherIssueIDs.forEach(async issueID => {
             const jiraIssueXML = await fetchXML(issueID, cmd);
@@ -62,7 +62,6 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
                 if (cmd.post) {
                     if (!duplicate) {
                         const issueNumber = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
-                        const commentsResponse = await addComments(issueNumber, comments, orgOrUser, repo, cmd);
                     } else { console.log(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`) }  
             } else { console.log(`--no-post option is set. Issues and their comments do not post. '${issue.title}'`) }
             } catch (err) {throw err;}
@@ -139,27 +138,6 @@ async function postIssue(issue, orgOrUser, repo, cmd) {
     } catch (err) {throw err;}
 }
 
-async function addComments(issueNumber, comments, orgOrUser, repo, cmd) {
-    const gitHub = new Github(GITHUB_AUTH);
-    try {
-        if (cmd.debug) {
-            console.log(`(5) ADDING COMMENTS to %s/%s`, orgOrUser, repo);
-        }
-        let json_response = {};
-        const Issue = await gitHub.getIssues(orgOrUser, repo);
-        if (cmd.post) {
-            comments.forEach(async comment => {
-                if (cmd.debug) {
-                    console.log(`adding comment ${comment} to issue#${issueNumber}`);
-                }
-                json_response = await Issue.createIssueComment(issueNumber, comment);
-                console.log(`(5) POST COMMENT RESPONSE`, json_response.status, '\t', json_response.data.body);
-            });
-        }
-        return json_response;
-    } catch (err) {throw err;}
-}
-
 async function listIssues(orgOrUser, repo) {
     const github = new Github(GITHUB_AUTH);
     const Issue = github.getIssues(orgOrUser, repo);
@@ -206,3 +184,5 @@ if (!module.parent) { // i.e. when using electron, don't set up the CLI.
     setupCLI();
 }
 UI.buildUI();
+
+module.exports.multijira2github = multijira2github;
