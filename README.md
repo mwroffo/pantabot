@@ -1,5 +1,5 @@
-# pantabot
-Keeping the open-source community updated on project progress produces hours of tedium for project managers and scrum masters (or developers who use a Jira instance) who have to fill out GitHub issues manually. This tool (eventually a bot, perhaps) automates the process of creating GitHub issues by fetching XML metadata for selected Jira issues, converting them into GitHub-friendly JSON issues, and posting them to a corresponding repo under a specified organization or user on GitHub.
+# panta
+Given login credentials for (1) Jira and (2) Github, a <USER_OR_ORGANIZATION>, a <REPO>, and a list of valid Jira issue IDs, panta posts the issues (including titles, descriptions, and labels) to https://github.com/USER_OR_ORGANIZATION/REPO.
 
 ## install:
 * install nodejs _globally_ on your machine: https://nodejs.org/en/download/
@@ -7,6 +7,9 @@ Keeping the open-source community updated on project progress produces hours of 
 * clone this repo: `git clone git@github.com:mwroffo/pantabot.git`
 * run `npm i`
 * should be good to go, but if not, please open an issue with a screenshot of your error message.
+
+## configuration:
+* Copy basicauth.js as myauth.js and substitute (1) your valid login for Jira server or Jira cloud, as well as (2) your valid GitHub login.
 
 ## usage:
 notation: <required_arg> [optional_arg]
