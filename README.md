@@ -1,5 +1,5 @@
 # panta
-Given login credentials for (1) Jira and (2) Github, a <USER_OR_ORGANIZATION>, a <REPO>, and a list of valid Jira issue IDs, panta posts the issues (including titles, descriptions, and labels) to https://github.com/USER_OR_ORGANIZATION/REPO.
+Given login credentials for (1) Jira and (2) Github, a USER_OR_ORGANIZATION, a REPO, and a list of valid Jira issue IDs, panta posts the issues (including titles, descriptions, and labels) to https://github.com/USER_OR_ORGANIZATION/REPO.
 
 ## install:
 * install nodejs _globally_ on your machine: https://nodejs.org/en/download/
