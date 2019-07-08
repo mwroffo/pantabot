@@ -9,15 +9,16 @@ Given login credentials for (1) Jira and (2) Github, a USER_OR_ORGANIZATION, a R
 * should be good to go, but if not, please open an issue with a screenshot of your error message.
 
 ## configuration:
-* Copy basicauth.js as myauth.js and substitute (1) your valid login for Jira server or Jira cloud, as well as (2) your valid GitHub login.
+* Copy config-boilerplate.js as config.js and substitute (1) your valid login for Jira server or Jira cloud, as well as (2) your valid GitHub login.
+* In the `fetchXML` function in `panta.js`, edit the `url` variable to reflect your Jira instance's XML `HTTPS GET` link.
 
 ## usage:
 notation: <required_arg> [optional_arg]
 Port a specified Jira issue into https://github.com/<GITHUB_USERNAME_OR_ORGANIZATION>/<REPO>
 `node panta j2g <GITHUB_USERNAME_OR_ORGANIZATION> <REPO> <JIRA_ISSUE_CODE> [MORE_JIRA_ISSUE_CODES...]`
 Example: `node panta j2g zowe zlux MVD-3048 MVD-3060`
-Note: 'MVD-####' are Jira project keys.
-Note: <GITHUB_USERNAME_OR_ORGANIZATION> <REPO> indicate the owner and repo where your jira issues will post. Specifiy authentication in auth.js.
+Note: 'MVD' is an example of a project prefix.
+Note: <GITHUB_USERNAME_OR_ORGANIZATION> <REPO> indicate the owner and repo where your jira issues will POST; this username is not to be confused with your authentication username.
 
 ## namesake:
 Zoe == 'wisdom' in Greek, panta == 'for all', thus zowe panta == 'wisdom for all'. @ActualSpeakersOfGreek please forgive errors.
