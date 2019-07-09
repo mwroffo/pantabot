@@ -70,14 +70,7 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
                 } else { handlePrint(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`, "info") }
             } catch (err) {throw err;}
         });
-
-        postResponses = await Promise.all(postResponses);
-        postResponses.forEach(json_response => {
-            const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
-            handlePrint(`(DONE) Panta posted \'${json_response.data.title}\' to ${public_url}`, "info");
-        });
     }
-    // console.log(`panta is posting ${otherIssueIDs.length} issues to ${orgOrUser}/${repo}.`)
 }
 
 async function convertIssue(issueID) {
