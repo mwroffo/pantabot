@@ -178,9 +178,8 @@ async function getUser(orgOrUser) {
 }
 
 // if this module is imported somewhere else, do not run main
-if (!module.parent) { // i.e. when using electron, don't set up the CLI.
+if (!module.parent) // i.e. when running from `electron .`, don't set up the CLI.
     setupCLI();
-}
-UI.buildUI();
+else UI.buildUI();
 
 module.exports.multijira2github = multijira2github;
