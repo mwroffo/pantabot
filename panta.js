@@ -50,27 +50,34 @@ function setupCLI() {
 async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
     // the commander.js docs demonstrate variadic args with one as required and others as optional
     // (https://github.com/tj/commander.js#variadic-arguments)
+    let postResponses = [];
     const alreadyExistingIssues = await listIssues(orgOrUser, repo); // returns an array of issues. titles don't include prefixes.
     if (issueID) otherIssueIDs.unshift(issueID); // combine into one array.
+
     if (otherIssueIDs) {
         otherIssueIDs.forEach(async issueID => {
-            const jiraIssueXML = await fetchXML(issueID, cmd);
-            const githubIssueJSON = convertXMLIssue2GithubIssue(jiraIssueXML, cmd);
-            const comments = githubIssueJSON.comments;
-            githubIssueJSON.comments = undefined;
             try {
-                let duplicate = checkForDuplicate(alreadyExistingIssues, githubIssueJSON.title);
+                const jiraIssueXML = await fetchXML(issueID, cmd);
+                const githubIssueJSON = convertXMLIssue2GithubIssue(jiraIssueXML, cmd);
                 if (cmd.post) {
+                    let duplicate = checkForDuplicate(alreadyExistingIssues, githubIssueJSON.title);
                     if (!duplicate) {
                         const json_response = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
                         const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
                         handlePrint(`(DONE) Panta posted \'${json_response.data.title}\' to ${public_url}`, "info");
+                        postResponses.push(json_response);
                     } else { handlePrint(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`, "info") }  
                 } else { handlePrint(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`, "info") }
             } catch (err) {throw err;}
         });
+
+        postResponses = await Promise.all(postResponses);
+        postResponses.forEach(json_response => {
+            const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
+            handlePrint(`(DONE) Panta posted \'${json_response.data.title}\' to ${public_url}`, "info");
+        });
     }
-    console.log(`panta is posting ${otherIssueIDs.length} issues to ${orgOrUser}/${repo}.`)
+    // console.log(`panta is posting ${otherIssueIDs.length} issues to ${orgOrUser}/${repo}.`)
 }
 
 async function convertIssue(issueID) {
@@ -179,10 +186,8 @@ async function getUser(orgOrUser) {
 }
 
 function handlePrint(string, messageBoxType) {
-    if (!module.parent) {
-        console.log(string);
-    }
-    else {
+    console.log(string); // console print
+    if (module.parent) { // show dialog if UI exists
         dialog.showMessageBox({
         type: messageBoxType,
         message: string
