@@ -1,5 +1,7 @@
 'use strict';
 
+const { dialog } = require('electron');
+const UI = require("./ui.js");
 const Github = require('github-api');
 const cheerio = require('cheerio');
 const program = require('commander');
@@ -48,25 +50,27 @@ function setupCLI() {
 async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
     // the commander.js docs demonstrate variadic args with one as required and others as optional
     // (https://github.com/tj/commander.js#variadic-arguments)
+    let postResponses = [];
     const alreadyExistingIssues = await listIssues(orgOrUser, repo); // returns an array of issues. titles don't include prefixes.
-    otherIssueIDs.unshift(issueID); // combine into one array.
+    if (issueID) otherIssueIDs.unshift(issueID); // combine into one array.
+
     if (otherIssueIDs) {
         otherIssueIDs.forEach(async issueID => {
-            const jiraIssueXML = await fetchXML(issueID, cmd);
-            const githubIssueJSON = convertXMLIssue2GithubIssue(jiraIssueXML, cmd);
-            const comments = githubIssueJSON.comments;
-            githubIssueJSON.comments = undefined;
             try {
+                const jiraIssueXML = await fetchXML(issueID, cmd);
+                const githubIssueJSON = convertXMLIssue2GithubIssue(jiraIssueXML, cmd);
                 if (cmd.post) {
                     let duplicate = checkForDuplicate(alreadyExistingIssues, githubIssueJSON.title);
                     if (!duplicate) {
-                        const issueNumber = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
-                    } else { console.log(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`) }  
-                } else { console.log(`--no-post option is set. Issues and their comments do not post. '${issue.title}'`) }
+                        const json_response = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
+                        const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
+                        handlePrint(`(DONE) Panta posted \'${json_response.data.title}\' to ${public_url}`, "info");
+                        postResponses.push(json_response);
+                    } else { handlePrint(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`, "info") }  
+                } else { handlePrint(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`, "info") }
             } catch (err) {throw err;}
         });
     }
-    console.log(`panta is posting ${otherIssueIDs.length} issues to ${orgOrUser}/${repo}.`)
 }
 
 async function convertIssue(issueID) {
@@ -113,9 +117,7 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
 
     // TODO june27 2019 labels should appear as strings in separate array indices
 
-    githubissue.comments = $('item comments comment').toArray().map(elem => $(elem).text());
-
-    if (cmd.debug) console.log(`(2) ISSUE CONVERTED`, githubissue);
+    if (cmd.debug) console.log(`(2) ISSUE CONVERTED `, githubissue);
     return githubissue;
 }
 
@@ -133,9 +135,7 @@ async function postIssue(issue, orgOrUser, repo, cmd) {
         let json_response = {};
         const Issue = gitHub.getIssues(orgOrUser, repo);
         json_response = await Issue.createIssue(issue);
-        const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
-        console.log(`(4) POST ISSUE RESPONSE`, json_response.data.title, '\t\t', public_url);
-        return json_response.data.number;
+        return json_response;
     } catch (err) {throw err;}
 }
 
@@ -180,7 +180,19 @@ async function getUser(orgOrUser) {
     } catch (err) {throw err;}
 }
 
-// if this module is imported somewhere else, do not run main
-if (!module.parent) {
-    setupCLI();
+function handlePrint(string, messageBoxType) {
+    console.log(string); // console print
+    if (module.parent) { // show dialog if UI exists
+        dialog.showMessageBox({
+        type: messageBoxType,
+        message: string
+        })
+    }
 }
+
+// if this module is imported somewhere else, do not run main
+if (!module.parent) // i.e. when not running from `electron .`, set up the CLI.
+    setupCLI();
+else UI.buildUI(); // otherwise, set up the UI.
+
+module.exports.multijira2github = multijira2github;
