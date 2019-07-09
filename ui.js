@@ -65,8 +65,8 @@ function buildUI() {
 
     ipcMain.on('form-submission', function j2gButtonHandler(event, jiraUsername, jiraPassword,
       githubUsername, githubPassword, owner, repo, issues) {
-        console.log('ipcMain on form-submission receives: ', jiraUsername, jiraPassword,
-        githubUsername, githubPassword, owner, repo, issues)
+        // console.log('ipcMain on form-submission receives: ', jiraUsername, jiraPassword,
+        // githubUsername, githubPassword, owner, repo, issues)
         if (jiraUsername) JIRA_AUTH.username = jiraUsername;
         if (jiraPassword) JIRA_AUTH.password = jiraPassword;
         if (githubUsername) GITHUB_AUTH.username = githubUsername;

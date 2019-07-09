@@ -63,7 +63,7 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
                     if (!duplicate) {
                         const json_response = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
                         const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
-                        console.log(`(DONE) POST ISSUE RESPONSE`, json_response.data.title, '\t\t', public_url);
+                        console.log(`(DONE) Panta posted \'${json_response.data.title}\' to ${public_url}`);
                     } else { console.log(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`) }  
                 } else { console.log(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`) }
             } catch (err) {throw err;}
@@ -114,7 +114,7 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
 
     // TODO june27 2019 labels should appear as strings in separate array indices
 
-    if (cmd.debug) console.log(`(2) ISSUE CONVERTED`, githubissue);
+    if (cmd.debug) console.log(`(2) ISSUE CONVERTED `, githubissue);
     return githubissue;
 }
 
@@ -175,6 +175,18 @@ async function getUser(orgOrUser) {
         // console.log(`getuser response`, json_response);
         // return json_response;
     } catch (err) {throw err;}
+}
+
+function handlePrint(string, messageBoxType) {
+    if (!module.parent) {
+        console.log(string);
+    }
+    else {
+        dialog.showMessageBox({
+        type: messageBoxType,
+        message: string
+        })
+    }
 }
 
 // if this module is imported somewhere else, do not run main
