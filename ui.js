@@ -76,7 +76,7 @@ function buildUI() {
           debug: false
         }
         Panta.multijira2github(owner, repo, undefined, issues, cmd);
-});
+    });
 
 }
 module.exports.buildUI = buildUI;
