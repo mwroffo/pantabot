@@ -61,7 +61,9 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
                 let duplicate = checkForDuplicate(alreadyExistingIssues, githubIssueJSON.title);
                 if (cmd.post) {
                     if (!duplicate) {
-                        const issueNumber = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
+                        const json_response = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
+                        const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
+                        console.log(`(DONE) POST ISSUE RESPONSE`, json_response.data.title, '\t\t', public_url);
                     } else { console.log(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`) }  
                 } else { console.log(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`) }
             } catch (err) {throw err;}
@@ -130,9 +132,7 @@ async function postIssue(issue, orgOrUser, repo, cmd) {
         let json_response = {};
         const Issue = gitHub.getIssues(orgOrUser, repo);
         json_response = await Issue.createIssue(issue);
-        const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
-        console.log(`(4) POST ISSUE RESPONSE`, json_response.data.title, '\t\t', public_url);
-        return json_response.data.number;
+        return json_response;
     } catch (err) {throw err;}
 }
 
