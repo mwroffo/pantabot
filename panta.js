@@ -1,5 +1,6 @@
 'use strict';
 
+const { dialog } = require('electron');
 const UI = require("./ui.js");
 const Github = require('github-api');
 const cheerio = require('cheerio');
@@ -63,9 +64,9 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
                     if (!duplicate) {
                         const json_response = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
                         const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
-                        console.log(`(DONE) Panta posted \'${json_response.data.title}\' to ${public_url}`);
-                    } else { console.log(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`) }  
-                } else { console.log(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`) }
+                        handlePrint(`(DONE) Panta posted \'${json_response.data.title}\' to ${public_url}`, "info");
+                    } else { handlePrint(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`, "info") }  
+                } else { handlePrint(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`, "info") }
             } catch (err) {throw err;}
         });
     }
@@ -190,8 +191,8 @@ function handlePrint(string, messageBoxType) {
 }
 
 // if this module is imported somewhere else, do not run main
-if (!module.parent) // i.e. when running from `electron .`, don't set up the CLI.
+if (!module.parent) // i.e. when not running from `electron .`, set up the CLI.
     setupCLI();
-else UI.buildUI();
+else UI.buildUI(); // otherwise, set up the UI.
 
 module.exports.multijira2github = multijira2github;
