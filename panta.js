@@ -196,7 +196,7 @@ function handleErr(err) {
     if (module.parent) { // show dialog if UI exists
         dialog.showMessageBox({
         type: "error",
-        message: err.message
+        message: `${err.name} ${err.message}`
         });
     }
     throw err;
