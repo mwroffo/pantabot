@@ -68,7 +68,7 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
                         postResponses.push(json_response);
                     } else { handlePrint(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`, "info") }  
                 } else { handlePrint(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`, "info") }
-            } catch (err) {throw err;}
+            } catch (err) {handleErr(err);}
         });
     }
 }
@@ -96,7 +96,7 @@ async function fetchXML(issueID, cmd) {
         const res = await RequestPromise.get(options).auth(JIRA_CONF.username, JIRA_CONF.password);
         if (cmd.debug) console.log(`(1) FETCHING XML from ${url}`);
         return res;
-    } catch (err) {throw err;}
+    } catch (err) {handleErr(err);}
 }
 
 /*
@@ -127,8 +127,8 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
 * @return {Promise} - the promise for the http request to the github api.
 */
 async function postIssue(issue, orgOrUser, repo, cmd) {
-    const gitHub = new Github(GITHUB_CONF);
     try {
+        const gitHub = new Github(GITHUB_CONF);
         if (cmd.debug) {
             console.log(`(3) POSTING ISSUE to %s/%s`, orgOrUser, repo);
         }
@@ -136,14 +136,16 @@ async function postIssue(issue, orgOrUser, repo, cmd) {
         const Issue = gitHub.getIssues(orgOrUser, repo);
         json_response = await Issue.createIssue(issue);
         return json_response;
-    } catch (err) {throw err;}
+    } catch (err) {handleErr(err);}
 }
 
 async function listIssues(orgOrUser, repo) {
-    const github = new Github(GITHUB_CONF);
-    const Issue = github.getIssues(orgOrUser, repo);
-    let issues = await Issue.listIssues();
-    return issues.data;
+    try {
+        const github = new Github(GITHUB_CONF);
+        const Issue = github.getIssues(orgOrUser, repo);
+        let issues = await Issue.listIssues();
+        return issues.data;
+    } catch (err) { handleErr(err) }
 }
 
 function checkForDuplicate(issues, title) {
@@ -165,7 +167,7 @@ async function getUser(orgOrUser) {
         // method1 gets 400 probs parsing json
         console.log(`READING USER ${orgOrUser}`);
         Request.get('https://api.github.com/user', options, (err,res,body) => {
-            if (err) throw err;
+            if (err) handleErr(err);
             console.log(res.statusCode, body);
         })
         .auth(GITHUB_CONF.username, GITHUB_CONF.password) // 200 resp
@@ -177,7 +179,7 @@ async function getUser(orgOrUser) {
         // json_response = await octokit.users.listNotifications(all=true);
         // console.log(`getuser response`, json_response);
         // return json_response;
-    } catch (err) {throw err;}
+    } catch (err) {handleErr(err);}
 }
 
 function handlePrint(string, messageBoxType) {
@@ -188,6 +190,16 @@ function handlePrint(string, messageBoxType) {
         message: string
         })
     }
+}
+
+function handleErr(err) {
+    if (module.parent) { // show dialog if UI exists
+        dialog.showMessageBox({
+        type: "error",
+        message: err.message
+        });
+    }
+    throw err;
 }
 
 // if this module is imported somewhere else, do not run main
