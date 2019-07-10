@@ -31,7 +31,9 @@
     "request-promise": "^4.2.4"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "electron-packager": "^14.0.1",
+    "mocha": "^6.1.4",
     "standard": "^12.0.1"
   }
 }
