@@ -21,4 +21,4 @@ Note: 'MVD' is an example of a project prefix.
 Note: <GITHUB_USERNAME_OR_ORGANIZATION> <REPO> indicate the owner and repo where your jira issues will POST; this username is not to be confused with your authentication username.
 
 ## Namesake:
-Zoe == 'wisdom' in Greek, panta == 'for all', thus zowe panta == 'wisdom for all'. @ActualSpeakersOfGreek please forgive errors.
+A buggy Greek translation.
