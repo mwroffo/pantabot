@@ -12,7 +12,6 @@ const Octokit = require('@octokit/rest');
 const GITHUB_CONF = require('./config.js').GITHUB_CONF;
 const JIRA_CONF = require('./config.js').JIRA_CONF;
 const pkg = require('./package.json');
-const USERNAMES_MAP = require('./usernames-map.json');
 
 function setupCLI() {
     program
