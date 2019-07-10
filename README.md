@@ -2,14 +2,14 @@
 Given login credentials for (1) Jira and (2) Github, a USER_OR_ORGANIZATION, a REPO, and a list of valid Jira issue IDs, panta posts the issues (including titles, descriptions, and labels) to https://github.com/USER_OR_ORGANIZATION/REPO.
 
 ## Install:
-* install nodejs _globally_ on your machine: https://nodejs.org/en/download/
-* run `node --version` from your terminal to confirm that NodeJS v7.10.1 or newer is installed (https://node.green/#ES2017).
+* install [nodejs](https://nodejs.org/en/download/) _globally_ on your machine: 
+* run `node --version` from your terminal to confirm that [NodeJS v7.10.1](https://node.green/#ES2017) or newer is installed .
 * clone this repo: `git clone git@github.com:mwroffo/pantabot.git`
 * run `npm i`
 * should be good to go, but if not, please open an issue with a screenshot of your error message.
 
 ## Configuration:
-* Copy config-boilerplate.js as config.js and substitute (1) your valid login for Jira server or Jira cloud, as well as (2) your valid GitHub login.
+* Copy config-boilerplate.js as config.js and substitute (1) your valid login for Jira server or Jira cloud, as well as (2) your valid GitHub login. Recommended: instead of a username and password, create a GitHub ["personal access token"](https://github.com/settings/tokens). GitHub can automatically revoke a token that is accidentally commited into a public repository.
 * In the `fetchXML` function in `panta.js`, edit the `url` variable to reflect your Jira instance's XML `HTTPS GET` link.
 
 ## Usage:
