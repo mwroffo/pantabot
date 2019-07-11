@@ -70,6 +70,8 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
             } catch (err) {handleErr(err);}
         });
     }
+    if (!postResponses.length === 0) return postResponses;
+    else return undefined
 }
 
 async function convertIssue(issueID) {
@@ -93,7 +95,7 @@ async function fetchXML(issueID, cmd) {
     }
     try {
         const res = await RequestPromise.get(options).auth(JIRA_CONF.username, JIRA_CONF.password);
-        if (cmd.debug) console.log(`(1) FETCHING XML from ${url}`);
+        if (cmd.debug) console.log(`(1) FETCHING XML from ${url}\nRECEIVED${res}`);
         return res;
     } catch (err) {handleErr(err);}
 }
@@ -183,7 +185,7 @@ async function getUser(orgOrUser) {
 
 function handlePrint(string, messageBoxType) {
     console.log(string); // console print
-    if (module.parent) { // show dialog if UI exists
+    if (electronIsParent()) { // show dialog if UI exists
         dialog.showMessageBox({
         type: messageBoxType,
         message: string
@@ -192,18 +194,26 @@ function handlePrint(string, messageBoxType) {
 }
 
 function handleErr(err) {
-    if (module.parent) { // show dialog if UI exists
+    if (electronIsParent()) { // show dialog if UI exists
         dialog.showMessageBox({
         type: "error",
         message: `${err.name} ${err.message}`
         });
     }
+    console.log(`${err.name} ${err.message}`);
     throw err;
 }
 
-// if this module is imported somewhere else, do not run main
-if (!module.parent) // i.e. when not running from `electron .`, set up the CLI.
-    setupCLI();
-else UI.buildUI(); // otherwise, set up the UI.
+function electronIsParent() { return module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js' }
 
+// if this module is imported somewhere else, do not run main
+if (!module.parent) {// i.e. when not running from `electron .`, set up the CLI.
+    setupCLI();
+    // note, be careful that this else if does not sabotage the UI setup in the case of e2e testing
+} else if (electronIsParent()) {
+    UI.buildUI();
+}
 module.exports.multijira2github = multijira2github;
+module.exports.fetchXML = fetchXML;
+module.exports.convertXMLIssue2GithubIssue = convertXMLIssue2GithubIssue;
+module.exports.postIssue = postIssue;
