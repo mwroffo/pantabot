@@ -8,6 +8,7 @@ const program = require('commander');
 const RequestPromise = require('request-promise');
 const Request = require('request');
 const Octokit = require('@octokit/rest');
+const J2G_USERNAME_MAP = require('./j2g-username-map');
 
 const GITHUB_CONF = require('./config.js').GITHUB_CONF;
 const JIRA_CONF = require('./config.js').JIRA_CONF;
@@ -113,8 +114,12 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
     title = title.replace(/\[.*\] */g, ''); // remove '[MVD-3038]' etc from title
     githubissue.title = title;
     githubissue.body = $('item description').text();
+    let labels = $('item labels label').toArray().map(elem => $(elem).text());
+    const component = $('item component').text();
+    labels.push(component);
+    githubissue.labels = labels;
+    console.log('githubissue.labels is', githubissue.labels);
 
-    githubissue.labels = $('item labels label').toArray().map(elem => $(elem).text());
 
     // TODO june27 2019 labels should appear as strings in separate array indices
 
