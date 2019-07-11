@@ -5,7 +5,8 @@
   "main": "panta.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "deploy": "node node_modules/electron-packager/bin/electron-packager.js . --overwrite"
   },
   "repository": {
     "type": "git",
