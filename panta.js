@@ -113,13 +113,13 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
     let title = $('item title').text();
     title = title.replace(/\[.*\] */g, ''); // remove '[MVD-3038]' etc from title
     githubissue.title = title;
-    githubissue.body = $('item description').text();
+    let body = $('item description').text();
+    
+    
     let labels = $('item labels label').toArray().map(elem => $(elem).text());
     const component = $('item component').text();
     labels.push(component);
-    githubissue.labels = labels;
-    console.log('githubissue.labels is', githubissue.labels);
-
+    githubissue.labels = labels;  
 
     const assignee = $('item assignee').text();
     githubissue.assignees = [J2G_USERNAME_MAP[assignee]];
