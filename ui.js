@@ -63,8 +63,8 @@ function buildUI() {
         }
     });
 
-    ipcMain.on('form-submission', function j2gButtonHandler(event, jiraUsername, jiraPassword,
-      githubUsername, githubPassword, owner, repo, issues) {
+    ipcMain.on('form-submission', function j2gButtonHandler(event, jiraUsername, jiraPassword, rememberJiraPasswordIsChecked,
+      githubUsername, githubPassword, rememberGithubPasswordIsChecked, owner, repo, issues) {
         // console.log('ipcMain on form-submission receives: ', jiraUsername, jiraPassword,
         // githubUsername, githubPassword, owner, repo, issues)
         if (jiraUsername) JIRA_AUTH.username = jiraUsername;
@@ -77,7 +77,6 @@ function buildUI() {
         }
         Panta.multijira2github(owner, repo, undefined, issues, cmd);
     });
-
 }
 module.exports.buildUI = buildUI;
 
