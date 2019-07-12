@@ -9,7 +9,8 @@ Given login credentials for (1) Jira and (2) Github, a USER_OR_ORGANIZATION, a R
 * should be good to go, but if not, please open an issue with a screenshot of your error message.
 
 ## Configuration:
-* Copy config-boilerplate.js as config.js and substitute (1) your valid login for Jira server or Jira cloud, as well as (2) your valid GitHub login. Recommended: instead of a username and password, create a GitHub ["personal access token"](https://github.com/settings/tokens). GitHub can then automatically revoke a token that is accidentally commited into a public repository; GitHub does not do this with passwords.
+* On first use of this app, fill out completely the appropriate fields for Jira and Github authentication. To make panta securely remember your password, check the "remember this password" boxes. Then post your first issue.
+* Copy config-boilerplate.js as config.js and substitute (1) your valid login for Jira server or Jira cloud, as well as (2) your valid GitHub login. Your new issues will show as posted by this username. Recommended: instead of a username and password, create a GitHub ["personal access token"](https://github.com/settings/tokens). GitHub can then automatically revoke a token that is accidentally commited into a public repository; GitHub does not do this with passwords.
 * Copy j2g-username-map-boilerplate.json as j2g-username-map.json, and list the users in your organization, mapping jira-username keys to github-username values.
 * In the `fetchXML` function in `panta.js`, edit the `url` variable to reflect your Jira instance's XML `HTTPS GET` link.
 
