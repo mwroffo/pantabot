@@ -121,6 +121,8 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
     console.log('githubissue.labels is', githubissue.labels);
 
 
+    const assignee = $('item assignee').text();
+    githubissue.assignees = [J2G_USERNAME_MAP[assignee]];
     // TODO june27 2019 labels should appear as strings in separate array indices
 
     if (cmd.debug) console.log(`(2) ISSUE CONVERTED `, githubissue);
