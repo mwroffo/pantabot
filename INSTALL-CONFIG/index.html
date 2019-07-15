@@ -1,0 +1,31 @@
+<!-- you can build this from the root directory with `electron INSTALL-CONFIG` -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>pantabot</title>
+    <link rel="stylesheet" href="../style.css">
+  </head>
+  <body>
+    <h1>Panta Authentication Wizard</h1>
+
+    <p>Enter username/password pairs:</p>
+    
+    <form name="ipcForm" onSubmit="JavaScript:sendForm(event)">
+      Jira username:<br>
+      <input type="text" name="jira-username" id="jira-username"><br>
+      Jira password:<br>
+      <input type="password" name="jira-password" id="jira-password"><br>
+      Github username:<br>
+      <input type="text" name="github-username" id="github-username"><br>
+      Github password:<br>
+      <input type="password" name="github-password" id="github-password"><br>
+
+      <input type="submit" value="Register this authentication with panta">
+  </form>
+
+  <script src='install-config-renderFile.js'></script>
+
+  </body>
+</html>
