@@ -7,6 +7,5 @@ function sendForm(event) {
     const githubUsername = document.getElementById("github-username").value;
     const githubPassword = document.getElementById("github-password").value;
     issues = issues.split(' ');
-    ipcRenderer.send('register-auth',
-        jiraUsername, jiraPassword, githubUsername, githubPassword);
+    ipcRenderer.send('register-auth', jiraUsername, jiraPassword, githubUsername, githubPassword);
 }
