@@ -190,7 +190,7 @@ async function getUser(orgOrUser) {
     } catch (err) {handleErr(err);}
 }
 
-function handlePrint(string, messageBoxType) {
+function handlePrint(string, messageBoxType="info") {
     console.log(string); // console print
     if (electronIsParent()) { // show dialog if UI exists
         dialog.showMessageBox({
