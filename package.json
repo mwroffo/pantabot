@@ -7,6 +7,7 @@
     "test": "mocha",
     "test:watch": "mocha --watch --reporter min",
     "start": "electron .",
+    "config": "node_modules\\electron\\dist\\electron.exe INSTALL-CONFIG",
     "deploy": "node node_modules/electron-packager/bin/electron-packager.js . --overwrite"
   },
   "repository": {
