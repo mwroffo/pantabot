@@ -7,20 +7,11 @@
   </head>
   <body>
     <h1>Panta</h1>
-    <p>Note: Authentication may be specified below or in config.js. [DO NOT COMMIT config.js TO GITHUB]</p>
-    <p>Troubleshooting: if issue-posts say "error 404", confirm that your username/password are correct. Submitting with the issue-codes field empty will cause error 400.
-    </p>
+    <p>SETUP: Before using panta, configure your authentication by double-clicking INSTALL-CONFIG inside the INSTALL-CONFIG folder.</p>
+    <p>Troubleshooting: if issue-posts say "error 404", confirm that your username/password were correctly registered with INSTALL-CONFIG. Submitting with the issue-codes field empty will cause error 400.</p>
     
     <form name="ipcForm" onSubmit="JavaScript:sendForm(event)">
-      Jira username:<br>
-      <input type="text" name="jira-username" id="jira-username"><br>
-      Jira password:<br>
-      <input type="password" name="jira-password" id="jira-password"><input type="checkbox" name="jira-password-remember" id="jira-password-remember"><br>
-      Github username:<br>
-      <input type="text" name="github-username" id="github-username"><input type="checkbox" name="github-password-remember" id="github-password-remember"><br>
-      Github password:<br>
-      <input type="password" name="github-password" id="github-password"><br>
-
+      
       <label>Posting issue(s) to https://github.com/owner/repo</label><br>
 
       <input type="text" name="owner" id="owner" value="mwroffo">
