@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain  } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog  } = require('electron');
 const Panta = require('../panta.js');
 const path = require ('path');
 const fs = require('fs');
@@ -36,10 +36,8 @@ function createWindow () {
     // when you should delete the corresponding element.
     window = null;
   })
-} 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+}
+
 function buildUI() {
 
     app.on('ready', createWindow)
@@ -63,8 +61,40 @@ function buildUI() {
 
     ipcMain.on('register-auth', async function registerPasswords(
         event, jiraUsername, jiraPassword, githubUsername, githubPassword) {
-          await keytar.setPassword('jira', jiraUsername, jiraPassword);
-          await keytar.setPassword('github', githubUsername, githubPassword);
+          try {
+            await keytar.setPassword('jira', jiraUsername, jiraPassword);
+            await keytar.setPassword('github', githubUsername, githubPassword);
+            handlePrint(`Successfully registered passwords for ${jiraUsername}@jira and ${githubUsername}@github.`);
+          } catch (err) { handleErr(err) }
     });
 }
 buildUI();
+
+// MISC UTILITIES (not obeying DRY, but these work in terms of current context, so they cannot be imported from panta)
+function handlePrint(string, messageBoxType="info") {
+  console.log(string); // console print
+  console.log('handlePrint: electronIsParent is', electronIsParent())
+  if (electronIsParent()) { // show dialog if UI exists
+      dialog.showMessageBox({
+      type: messageBoxType,
+      message: string
+      })
+  }
+}
+
+function handleErr(err) {
+  console.log('handleErr: electronIsParent is', electronIsParent())
+  if (electronIsParent()) { // show dialog if UI exists
+      dialog.showMessageBox({
+      type: "error",
+      message: `${err.name} ${err.message}`
+      });
+  }
+  console.log(`${err.name} ${err.message}`);
+  throw err;
+}
+
+function electronIsParent() {
+  if (module.parent)
+      return module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js' 
+}
