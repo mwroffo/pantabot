@@ -1,12 +1,13 @@
-// copy this file as myauth.js then replace with your login credentials
-// then `echo "myauth.js" >> ./.gitignore`
+// Copy this file as config.js then replace with your login credentials
+// Make sure that config.js is in .gitignore!!!
+const keytar = require('keytar');
 
-module.exports.JIRA_CONF = {
-    username:'jsmith',
-    password:'password'
-}
-module.exports.GITHUB_CONF = {
-    username:'jsmith',
-    password:'password',
-    token: ''
-}
+let JIRA_CONF = {};
+JIRA_CONF.username = 'jsmith';
+keytar.getPassword('jira', JIRA_CONF.username).then(password => JIRA_CONF.password = password);
+let GITHUB_CONF = {};
+GITHUB_CONF.username = 'jappleseed';
+keytar.getPassword('github', GITHUB_CONF.username).then(password => GITHUB_CONF.password = password);
+
+module.exports.JIRA_CONF = JIRA_CONF;
+module.exports.GITHUB_CONF = GITHUB_CONF;
