@@ -7,8 +7,10 @@
     "test": "mocha",
     "test:watch": "mocha --watch --reporter min",
     "start": "electron .",
-    "config": "node_modules\\electron\\dist\\electron.exe INSTALL-CONFIG",
-    "deploy": "node node_modules/electron-packager/bin/electron-packager.js . --overwrite"
+    "deploy": "node node_modules/electron-packager/bin/electron-packager.js . --overwrite",
+    "installer": "node_modules\\electron\\dist\\electron.exe INSTALL-CONFIG",
+    "deploy-installer": "node node_modules/electron-packager/bin/electron-packager.js INSTALL-CONFIG --no-prune --overwrite",
+    "electron-rebuild": "node_modules\\.bin\\electron-rebuild"
   },
   "repository": {
     "type": "git",
@@ -27,17 +29,16 @@
     "cheerio": "0.22.0",
     "commander": "^2.20.0",
     "github-api": "^3.2.2",
-    "js-base64": "^2.5.1",
     "keytar": "^4.11.0",
     "path": "^0.12.7",
     "request": "^2.88.0",
-    "request-promise": "^4.2.4"
+    "request-promise": "^4.2.4",
+    "electron": "^5.0.6",
+    "electron-packager": "^14.0.1",
+    "electron-rebuild": "^1.8.5"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "electron": "^5.0.6",
-    "electron-packager": "^14.0.1",
-    "electron-rebuild": "^1.8.5",
     "mocha": "^6.1.4",
     "standard": "^12.0.1"
   }
