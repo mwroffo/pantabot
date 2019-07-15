@@ -3,6 +3,7 @@ const Panta = require('./panta.js');
 const path = require ('path');
 const fs = require('fs');
 const os = require('os');
+const keytar = require('keytar');
 let GITHUB_AUTH = require('./config.js').GITHUB_AUTH;
 let JIRA_AUTH = require('./config.js').JIRA_AUTH;
 
@@ -63,14 +64,7 @@ function buildUI() {
         }
     });
 
-    ipcMain.on('form-submission', function j2gButtonHandler(event, jiraUsername, jiraPassword, rememberJiraPasswordIsChecked,
-      githubUsername, githubPassword, rememberGithubPasswordIsChecked, owner, repo, issues) {
-        // console.log('ipcMain on form-submission receives: ', jiraUsername, jiraPassword,
-        // githubUsername, githubPassword, owner, repo, issues)
-        if (jiraUsername) JIRA_AUTH.username = jiraUsername;
-        if (jiraPassword) JIRA_AUTH.password = jiraPassword;
-        if (githubUsername) GITHUB_AUTH.username = githubUsername;
-        if (githubPassword) GITHUB_AUTH.password = githubPassword;
+    ipcMain.on('form-submission', function j2gButtonHandler(event, owner, repo, issues) {
         const cmd = {
           post: true,
           debug: false
@@ -79,6 +73,3 @@ function buildUI() {
     });
 }
 module.exports.buildUI = buildUI;
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
