@@ -22,7 +22,7 @@ function createWindow () {
   });
 
   // Open the DevTools.
-  window.webContents.openDevTools()
+  // window.webContents.openDevTools()
   
   let contents = window.webContents;
   // Emitted when the window is closed.
