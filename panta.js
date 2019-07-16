@@ -66,7 +66,7 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
                         const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
                         handlePrint(`(DONE) Panta posted \'${json_response.data.title}\' to ${public_url}`, "info");
                         postResponses.push(json_response);
-                    } else { handlePrint(`skipping issue '${duplicate.title}' because it already exists at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`, "info") }  
+                    } else { handlePrint(`skipping issue '${duplicate.title}' because it is already open at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`, "info") }  
                 } else { handlePrint(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`, "info") }
             } catch (err) {handleErr(err);}
         });
@@ -113,16 +113,20 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
     let title = $('item title').text();
     title = title.replace(/\[.*\] */g, ''); // remove '[MVD-3038]' etc from title
     githubissue.title = title;
-    let body = $('item description').text();
     
+    let body = $('item description').text();
+    githubissue.body = body;
     
     let labels = $('item labels label').toArray().map(elem => $(elem).text());
     const component = $('item component').text();
     labels.push(component);
-    githubissue.labels = labels;  
+    githubissue.labels = labels;
 
     const assignee = $('item assignee').text();
-    githubissue.assignees = [J2G_USERNAME_MAP[assignee]];
+    if (J2G_USERNAME_MAP[assignee] !== undefined) {
+        githubissue.assignees = [J2G_USERNAME_MAP[assignee]];
+    }
+    
     // TODO june27 2019 labels should appear as strings in separate array indices
 
     if (cmd.debug) console.log(`(2) ISSUE CONVERTED `, githubissue);
@@ -211,8 +215,11 @@ function handleErr(err) {
     throw err;
 }
 
-function electronIsParent() { return module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js' }
-
+function electronIsParent() {
+    if (module.parent)
+        return module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js' 
+}
+                                                                
 // if this module is imported somewhere else, do not run main
 if (!module.parent) {// i.e. when not running from `electron .`, set up the CLI.
     setupCLI();
