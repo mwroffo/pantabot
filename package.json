@@ -9,6 +9,7 @@
     "start": "electron .",
     "deploy": "node node_modules/electron-packager/bin/electron-packager.js . --overwrite",
     "installer": "node_modules\\electron\\dist\\electron.exe INSTALL-CONFIG",
+    "full-deploy":"node node_modules/electron-packager/bin/electron-packager.js . --overwrite && node node_modules/electron-packager/bin/electron-packager.js INSTALL-CONFIG --no-prune --overwrite",
     "deploy-installer": "node node_modules/electron-packager/bin/electron-packager.js INSTALL-CONFIG --no-prune --overwrite",
     "electron-rebuild": "node_modules\\.bin\\electron-rebuild"
   },
