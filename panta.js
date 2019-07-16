@@ -7,7 +7,6 @@ const cheerio = require('cheerio');
 const program = require('commander');
 const RequestPromise = require('request-promise');
 const Request = require('request');
-const Octokit = require('@octokit/rest');
 const J2G_USERNAME_MAP = require('./j2g-username-map');
 
 const GITHUB_CONF = require('./config.js').GITHUB_CONF;
@@ -182,15 +181,7 @@ async function getUser(orgOrUser) {
             if (err) handleErr(err);
             console.log(res.statusCode, body);
         })
-        .auth(GITHUB_CONF.username, GITHUB_CONF.password) // 200 resp
-        // .auth(null, null, false, GITHUB_CONF.bearer); // 401 requires auth
-        
-        // method2 gets 401
-        // let json_response = {};
-        // json_response = await RequestPromise.get(options).auth(GITHUB_CONF.username, GITHUB_CONF.password, false, GITHUB_CONF.bearer);
-        // json_response = await octokit.users.listNotifications(all=true);
-        // console.log(`getuser response`, json_response);
-        // return json_response;
+        .auth(GITHUB_CONF.username, GITHUB_CONF.password)
     } catch (err) {handleErr(err);}
 }
 
