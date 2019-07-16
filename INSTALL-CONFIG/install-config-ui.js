@@ -1,8 +1,4 @@
 const { app, BrowserWindow, ipcMain, dialog  } = require('electron');
-const Panta = require('../panta.js');
-const path = require ('path');
-const fs = require('fs');
-const os = require('os');
 const keytar = require('keytar');
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -26,7 +22,7 @@ function createWindow () {
   });
 
   // Open the DevTools.
-  // window.webContents.openDevTools()
+  window.webContents.openDevTools()
   
   let contents = window.webContents;
   // Emitted when the window is closed.
@@ -65,36 +61,23 @@ function buildUI() {
             await keytar.setPassword('jira', jiraUsername, jiraPassword);
             await keytar.setPassword('github', githubUsername, githubPassword);
             handlePrint(`Successfully registered passwords for ${jiraUsername}@jira and ${githubUsername}@github.`);
-          } catch (err) { handleErr(err) }
+          } catch (err) { handleErr(err); }
     });
 }
 buildUI();
 
 // MISC UTILITIES (not obeying DRY, but these work in terms of current context, so they cannot be imported from panta)
 function handlePrint(string, messageBoxType="info") {
-  console.log(string); // console print
-  console.log('handlePrint: electronIsParent is', electronIsParent())
-  if (electronIsParent()) { // show dialog if UI exists
-      dialog.showMessageBox({
-      type: messageBoxType,
-      message: string
-      })
-  }
+    dialog.showMessageBox({
+    type: messageBoxType,
+    message: string
+    })
 }
 
 function handleErr(err) {
-  console.log('handleErr: electronIsParent is', electronIsParent())
-  if (electronIsParent()) { // show dialog if UI exists
-      dialog.showMessageBox({
-      type: "error",
-      message: `${err.name} ${err.message}`
-      });
-  }
-  console.log(`${err.name} ${err.message}`);
-  throw err;
-}
-
-function electronIsParent() {
-  if (module.parent)
-      return module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js' 
+    dialog.showMessageBox({
+    type: "error",
+    message: `${err.name} ${err.message}`
+    });
+    throw err;
 }
