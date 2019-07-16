@@ -66,7 +66,7 @@ function buildUI() {
 }
 buildUI();
 
-// MISC UTILITIES (not obeying DRY, but these work in terms of current context, so they cannot be imported from panta)
+// MISC UTILS
 function handlePrint(string, messageBoxType="info") {
     dialog.showMessageBox({
     type: messageBoxType,
