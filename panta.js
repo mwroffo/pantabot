@@ -119,11 +119,9 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
     let labels = $('item labels label').toArray().map(elem => $(elem).text());
     const component = $('item component').text();
     labels.push(component);
-    console.log('labels are', labels);
     if (labels[0] !== '') {
         githubissue.labels = labels;
     }
-    console.log('githubissue.labels is', githubissue.labels);
     const assignee = $('item assignee').text();
     if (J2G_USERNAME_MAP[assignee] !== undefined) {
         githubissue.assignees = [J2G_USERNAME_MAP[assignee]];
