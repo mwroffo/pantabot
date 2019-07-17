@@ -1,7 +1,6 @@
 'use strict';
 
 const { dialog } = require('electron');
-const UI = require("./ui.js");
 const Github = require('github-api');
 const cheerio = require('cheerio');
 const program = require('commander');
@@ -208,19 +207,25 @@ function handleErr(err) {
 }
 
 function electronIsParent() {
+    // when panta.js was "main" in package.json, module.parent.filename was:
+    // 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js'
+    let toReturn = false;
     if (module.parent) {
-        return module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js'
+        if (module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\ui.js')
+            return true;
+        else {
+            console.log('module.parent exists but is not electron: module.parent is', module.parent.filename);
+            return false;
+        }
     } else {
-        console.log('electronIsParent: module.parent does not exist')
+        console.log('electronIsParent: module.parent does not exist');
+        return false;
     }
 }
 
-// if this module is imported somewhere else, do not run main
-if (!module.parent) {// i.e. when not running from `electron .`, set up the CLI.
+// if this module is imported somewhere else, do not run main. take care that this does not cause problems with test-suites.
+if (!module.parent) {
     setupCLI();
-    // note, be careful that this else if does not sabotage the UI setup in the case of e2e testing
-} else if (electronIsParent()) {
-    UI.buildUI();
 }
 module.exports.multijira2github = multijira2github;
 module.exports.fetchXML = fetchXML;

@@ -72,3 +72,4 @@ function buildUI() {
     });
 }
 module.exports.buildUI = buildUI;
+buildUI();
