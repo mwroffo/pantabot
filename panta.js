@@ -119,8 +119,11 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
     let labels = $('item labels label').toArray().map(elem => $(elem).text());
     const component = $('item component').text();
     labels.push(component);
-    githubissue.labels = labels;
-
+    console.log('labels are', labels);
+    if (labels[0] !== '') {
+        githubissue.labels = labels;
+    }
+    console.log('githubissue.labels is', githubissue.labels);
     const assignee = $('item assignee').text();
     if (J2G_USERNAME_MAP[assignee] !== undefined) {
         githubissue.assignees = [J2G_USERNAME_MAP[assignee]];
@@ -147,7 +150,7 @@ async function postIssue(issue, orgOrUser, repo, cmd) {
         const Issue = gitHub.getIssues(orgOrUser, repo);
         json_response = await Issue.createIssue(issue);
         return json_response;
-    } catch (err) {handleErr(err);}
+    } catch (err) { console.log(`failed to post`, issue); handleErr(err);}
 }
 
 async function listIssues(orgOrUser, repo) {
@@ -207,10 +210,13 @@ function handleErr(err) {
 }
 
 function electronIsParent() {
-    if (module.parent)
-        return module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js' 
+    if (module.parent) {
+        return module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js'
+    } else {
+        console.log('electronIsParent: module.parent does not exist')
+    }
 }
-                                                                
+
 // if this module is imported somewhere else, do not run main
 if (!module.parent) {// i.e. when not running from `electron .`, set up the CLI.
     setupCLI();
