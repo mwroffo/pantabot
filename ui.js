@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain  } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const Panta = require('./panta.js');
 const path = require ('path');
 const fs = require('fs');
