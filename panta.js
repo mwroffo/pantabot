@@ -49,7 +49,7 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
     // the commander.js docs demonstrate variadic args with one as required and others as optional
     // (https://github.com/tj/commander.js#variadic-arguments)
     let postResponses = [];
-    const alreadyExistingIssues = await listIssues(orgOrUser, repo); // returns an array of issues. titles don't include prefixes.
+    const alreadyExistingIssues = await listIssues(orgOrUser, repo, cmd); // returns an array of issues. titles don't include prefixes.
     if (issueID) otherIssueIDs.unshift(issueID); // combine into one array.
 
     if (otherIssueIDs) {
@@ -62,11 +62,14 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
                     if (!duplicate) {
                         const json_response = await postIssue(githubIssueJSON, orgOrUser, repo, cmd);
                         const public_url = json_response.data.url.replace(/api\./g,'').replace(/\/repos/g,'');
-                        handlePrint(`(DONE) Panta posted \'${json_response.data.title}\' to ${public_url}`, "info");
+                        handlePrint(`(DONE) Panta posted \'${json_response.data.title}\' to ${public_url}`, cmd.uiIsOn);
                         postResponses.push(json_response);
-                    } else { handlePrint(`skipping issue '${duplicate.title}' because it is already open at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`, "info") }  
-                } else { handlePrint(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`, "info") }
-            } catch (err) {handleErr(err);}
+                    } else { handlePrint(`skipping issue '${duplicate.title}' because it is already open at https//github.com/${orgOrUser}/${repo}/issues/${duplicate.number}`, cmd.uiIsOn) }  
+                } else { handlePrint(`--no-post option is set. Issues and their comments do not post. '${githubIssueJSON.title}'`, cmd.uiIsOn) }
+            } catch (err) {
+                err.message = `ERR thrown in function multijira2github: ${err.message}`;
+                handleErr(err, cmd.uiIsOn);
+            }
         });
     }
     if (!postResponses.length === 0) return postResponses;
@@ -96,7 +99,10 @@ async function fetchXML(issueID, cmd) {
         const res = await RequestPromise.get(options).auth(JIRA_CONF.username, JIRA_CONF.password);
         if (cmd.debug) console.log(`(1) FETCHING XML from ${url}\nRECEIVED${res}`);
         return res;
-    } catch (err) {handleErr(err);}
+    } catch (err) {
+        err.message = `ERR thrown in function fetchXML: ${err.message}`;
+        handleErr(err, cmd.uiIsOn); 
+    }
 }
 
 /*
@@ -147,16 +153,20 @@ async function postIssue(issue, orgOrUser, repo, cmd) {
         const Issue = gitHub.getIssues(orgOrUser, repo);
         json_response = await Issue.createIssue(issue);
         return json_response;
-    } catch (err) { console.log(`failed to post`, issue); handleErr(err);}
+    } catch (err) { 
+        handlePrint(`failed to post '${issue.title}'`, cmd.uiIsOn);
+        err.message = `err thrown in postIssue: ${err.message}`;
+        handleErr(err, cmd.uiIsOn);
+    }
 }
 
-async function listIssues(orgOrUser, repo) {
+async function listIssues(orgOrUser, repo, cmd) {
     try {
         const github = new Github(GITHUB_CONF);
         const Issue = github.getIssues(orgOrUser, repo);
         let issues = await Issue.listIssues();
         return issues.data;
-    } catch (err) { handleErr(err) }
+    } catch (err) { handleErr(err, cmd.uiIsOn) }
 }
 
 function checkForDuplicate(issues, title) {
@@ -178,25 +188,25 @@ async function getUser(orgOrUser) {
         // method1 gets 400 probs parsing json
         console.log(`READING USER ${orgOrUser}`);
         Request.get('https://api.github.com/user', options, (err,res,body) => {
-            if (err) handleErr(err);
+            if (err) handleErr(err, cmd.uiIsOn);
             console.log(res.statusCode, body);
         })
         .auth(GITHUB_CONF.username, GITHUB_CONF.password)
-    } catch (err) {handleErr(err);}
+    } catch (err) { handleErr(err, cmd.uiIsOn) }
 }
 
-function handlePrint(string, messageBoxType="info") {
-    console.log(string); // console print
-    if (electronIsParent()) { // show dialog if UI exists
+function handlePrint(string, uiIsOn) {
+    if (uiIsOn) { // show dialog if UI exists
         dialog.showMessageBox({
-        type: messageBoxType,
-        message: string
+            type: "info",
+            message: string
         })
     }
+    console.log(string); // console print
 }
 
-function handleErr(err) {
-    if (electronIsParent()) { // show dialog if UI exists
+function handleErr(err, uiIsOn) {
+    if (uiIsOn) { // show dialog if UI exists
         dialog.showMessageBox({
         type: "error",
         message: `${err.name} ${err.message}`
@@ -211,13 +221,16 @@ function electronIsParent() {
     // 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js'
     let toReturn = false;
     if (module.parent) {
+        // when launching from `npm start`, this is true
         if (module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\ui.js')
             return true;
         else {
+            dialog.showMessageBox( {type:"info", message:`module.parent exists and is ${module.parent.filename}`} )
             console.log('module.parent exists but is not electron: module.parent is', module.parent.filename);
             return false;
         }
     } else {
+        dialog.showMessageBox( {type:"info", message: "electronIsParent: module.parent DNE"} )
         console.log('electronIsParent: module.parent does not exist');
         return false;
     }
