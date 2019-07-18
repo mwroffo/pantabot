@@ -65,9 +65,9 @@ function buildUI() {
 
     ipcMain.on('form-submission', function j2gButtonHandler(event, owner, repo, issues) {
         const cmd = {
-          post: true,
-          debug: false,
-          uiIsOn: true
+            post: true,
+            debug: false,
+            uiIsOn: true
         }
         Panta.multijira2github(owner, repo, undefined, issues, cmd);
     });
