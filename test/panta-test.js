@@ -67,3 +67,18 @@ describe('postIssue(githubIssueAsJSON): response', () => {
         // console.log(response);
     });
 });
+
+describe('isOpen(issueID, repo): boolean', () => {
+    it('should be a function', () => {
+        expect(Panta.isOpen).to.be.a('function');
+    });
+    it('should correctly return whether an issue is open on some repo', () =>{
+        const testRepo; // TODO complete assignments:
+        const issueThatDoesNotExist;
+        expect(isOpen(issueThatDoesNotExist, testRepo)).to.be.false;
+        const issueThatExistsButIsClosed;
+        expect(isOpen(issueThatExistsButIsClosed, testRepo)).to.be.false;
+        const issueThatExistsAndIsOpen;
+        expect(isOpen(issueThatExistsAndIsOpen, testRepo)).to.be.true;
+    });
+})
