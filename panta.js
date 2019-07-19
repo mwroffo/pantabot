@@ -216,26 +216,6 @@ function handleErr(err, uiIsOn) {
     throw err;
 }
 
-function electronIsParent() {
-    // when panta.js was "main" in package.json, module.parent.filename was:
-    // 'C:\\Users\\mroffo\\zowe\\pantabot\\node_modules\\electron\\dist\\resources\\default_app.asar\\main.js'
-    let toReturn = false;
-    if (module.parent) {
-        // when launching from `npm start`, this is true
-        if (module.parent.filename === 'C:\\Users\\mroffo\\zowe\\pantabot\\ui.js')
-            return true;
-        else {
-            dialog.showMessageBox( {type:"info", message:`module.parent exists and is ${module.parent.filename}`} )
-            console.log('module.parent exists but is not electron: module.parent is', module.parent.filename);
-            return false;
-        }
-    } else {
-        dialog.showMessageBox( {type:"info", message: "electronIsParent: module.parent DNE"} )
-        console.log('electronIsParent: module.parent does not exist');
-        return false;
-    }
-}
-
 // if this module is imported somewhere else, do not run main. take care that this does not cause problems with test-suites.
 if (!module.parent) {
     setupCLI();
