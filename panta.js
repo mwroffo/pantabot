@@ -286,15 +286,23 @@ async function updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitl
 }
 
 /**
- * given orgOrUser/repo and a title, creates the new milestone and returns the milestoneID, or else returns the ID of the existing milestone with this title, or returns false if error.
+ * given orgOrUser/repo and a title, creates the new milestone and returns the milestoneID, or else returns the ID of the existing milestone with this title, or throws if err.
  * @param {*} orgOrUser 
  * @param {*} repo 
  * @param {*} newMilestoneTitle 
- * @param {*} cmd 
+ * @param {*} cmd
  */
 async function createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd) {
-    // TODO
-    return null;
+    try {
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        const response = await Issue.createMilestone( {title: newMilestoneTitle} );
+        const newMilestoneID = response.data.number;
+        console.log(`successfully added milestone ${newMilestoneTitle} to ${orgOrUser}/${repo} with ID ${newMilestoneID}`)
+        return newMilestoneID;
+    } catch (err) {
+        console.log(`in createNewMilestoneInRepo: catching error ${err.response.status}`);
+    }
 }
 
 
@@ -331,11 +339,19 @@ async function getMilestoneIDByTitle(orgOrUser, repo, milestoneTitle, cmd) {
  * @param {*} cmd 
  */
 async function deleteMilestoneFromRepo(orgOrUser, repo, milestoneID, cmd) {
-    // TODO
-    return null;
+    try {
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        const response = await Issue.deleteMilestone(milestoneID);
+        if (response.status === 204) console.log(`in deleteMilestoneFromRepo: successfully removed milestone with ID ${milestoneID} from ${orgOrUser}/${repo}`);
+        else console.log(`in deleteMilestoneFromRepo: unexpected status: ${response.status} while response is ${response}`);
+        return milestoneID;
+    } catch (err) {
+        console.log(`in deleteMilestoneFromRepo: catching error ${err.response.status}`);
+    }
 }
 
-// if this module is imported somewhere else, do not run main. take care that this does not cause problems with test-suites.
+// if this module is imported somewhere else, do not run CLI setup. take care that this does not cause problems with test-suites.
 if (!module.parent) {
     setupCLI();
 }
