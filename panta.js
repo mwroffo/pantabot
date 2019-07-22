@@ -220,9 +220,10 @@ function handleErr(err, uiIsOn) {
  * Given a timestamp as string, returns boolean indicating whether (1) the issue was opened on or after startDate AND (2) has not been closed.
  * @param {string} startDate
  */
-function openedByDateAndStillOpen(issueID, startDate) {
-    return openedByDate(issueID, startDate) && isOpen();
+async function openedByDateAndIsOpen(issueID, startDate) {
+    return await openedByDate(issueID, startDate) && await isOpen(issueID);
 }
+
 /**
  * if issueID was opened on or after startDate, return true, else return false.
  * @param {*} orgOrUser
@@ -250,11 +251,12 @@ async function openedByDate(orgOrUser, repo, issueID, startDate, cmd) {
         return false;
     }
 }
+
 /**
  * @param {string} orgOrUser 
  * @param {string} repo 
  * @param {number} issueID
- * @param {Object} cmd indicates certain options.
+ * @param {object} cmd indicates certain options.
  */
 async function isOpen(orgOrUser, repo, issueID, cmd) {
     try {
@@ -270,6 +272,68 @@ async function isOpen(orgOrUser, repo, issueID, cmd) {
         return false;
     }
 }
+/**
+ * queries the issue with the given issueID under orgOrUser/repo and edits its milestone to be `newMilestoneTitle`. returns true for normal http responses and false for 300 or 400s.
+ * @param {string} orgOrUser 
+ * @param {string} repo 
+ * @param {number} issueID 
+ * @param {string} newMilestoneTitle 
+ * @param {object} cmd 
+ */
+async function updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitle, cmd) {
+    // TODO
+    return null;
+}
+
+/**
+ * given orgOrUser/repo and a title, creates the new milestone and returns the milestoneID, or else returns the ID of the existing milestone with this title, or returns false if error.
+ * @param {*} orgOrUser 
+ * @param {*} repo 
+ * @param {*} newMilestoneTitle 
+ * @param {*} cmd 
+ */
+async function createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd) {
+    // TODO
+    return null;
+}
+
+
+/**
+ * given orgOrUser, repo, and the title of a milestone, returns the ID of that milestone, or false if no such milestone exists or if error.
+ * @param {*} orgOrUser 
+ * @param {*} repo 
+ * @param {*} milestoneTitle 
+ * @param {*} cmd 
+ */
+async function getMilestoneIDByTitle(orgOrUser, repo, milestoneTitle, cmd) {
+    try {
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        const response = await Issue.listMilestones();
+        const milestones = response.data;
+        let idToReturn = false;
+        milestones.forEach(milestone => {
+            if (milestone.title === milestoneTitle) {
+                idToReturn = milestone.number;
+            }
+            if (cmd.debug) console.log(`${milestone.title} === ${milestoneTitle} is ${milestone.title === milestoneTitle}`);
+        });
+        return idToReturn;
+    } catch (err) {
+        throw err;
+    }
+}
+/**
+ * given orgOrUser/repo and a milestoneID, deletes the milestone in that repo with that ID, returning the ID if successful, or false if that ID does not exist.
+ * @param {*} orgOrUser 
+ * @param {*} repo 
+ * @param {*} milestoneID 
+ * @param {*} cmd 
+ */
+async function deleteMilestoneFromRepo(orgOrUser, repo, milestoneID, cmd) {
+    // TODO
+    return null;
+}
 
 // if this module is imported somewhere else, do not run main. take care that this does not cause problems with test-suites.
 if (!module.parent) {
@@ -281,4 +345,8 @@ module.exports.convertXMLIssue2GithubIssue = convertXMLIssue2GithubIssue;
 module.exports.postIssue = postIssue;
 module.exports.isOpen = isOpen;
 module.exports.openedByDate = openedByDate;
-module.exports.openedByDateAndStillOpen = openedByDateAndStillOpen;
+module.exports.openedByDateAndIsOpen = openedByDateAndIsOpen;
+module.exports.updateMilestoneOfIssue = updateMilestoneOfIssue;
+module.exports.createNewMilestoneInRepo = createNewMilestoneInRepo;
+module.exports.getMilestoneIDByTitle = getMilestoneIDByTitle;
+module.exports.deleteMilestoneFromRepo = deleteMilestoneFromRepo;
