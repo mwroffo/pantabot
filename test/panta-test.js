@@ -75,7 +75,7 @@ describe.only('isOpen(orgOrUser, repo, issueID): boolean', () => {
     it('should correctly return whether an issue is open on some repo', async () => {
         const issueThatDoesNotExist = 1000;
         const issueThatExistsButIsClosed = 1;
-        const issueThatExistsAndIsOpen = 54;
+        const issueThatExistsAndIsOpen = 56;
         expect(await Panta.isOpen(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatDoesNotExist, {debug: false, uiIsOn: false} )).to.be.false;
         expect(await Panta.isOpen(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatExistsButIsClosed, {debug: false, uiIsOn: false} )).to.be.false;
         expect(await Panta.isOpen(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatExistsAndIsOpen, {debug: false, uiIsOn: false} )).to.be.true;
@@ -95,4 +95,57 @@ describe.only('openedByDate(orgOrUser, repo, issueID, startDate, cmd): boolean',
         expect(await Panta.openedByDate(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenedBeforeStartDate, testStartDate, {debug: false, uiIsOn: false} )).to.be.false;
         expect(await Panta.openedByDate(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenedAfterStartDate, testStartDate, {debug: false, uiIsOn: false} )).to.be.true;
     });
+});
+
+describe.only('testing async function updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitle, cmd): number || boolean', () => {
+    it('should be a function', () => {
+        expect(Panta.updateMilestoneOfIssue).to.be.a('function');
+    });
+    it('should use Github.Issue.EditIssue to assign a milestone that already exists, returning the milestoneID upon success', async () => {
+        const testIssueID = 56;
+        const correspondingMilestoneIDThatAlreadyExists = 1;
+        const milestoneTitleThatAlreadyExists = '0.1.0';
+        expect(await Panta.updateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, testIssueID, milestoneTitleThatAlreadyExists, {debug: false, uiIsOn: false} ))
+            .to.be.a('number').which.equals(correspondingMilestoneIDThatAlreadyExists);
+    });
+    it('if an assigned milestone does not yet exist, should create the milestone before assigning it using Panta.createNewMilestoneInRepo, then returning the new milestoneID upon success', async () => {
+        const testIssueID = 56;
+        const milestoneTitleThatDNE = 'This is a test of Panta.updateMilestoneOfIssue';
+        const newMilestoneID = await Panta.updateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, testIssueID, milestoneTitleThatDNE, {debug: false, uiIsOn: false} );
+        expect(newMilestoneID).to.be.a('number');
+    });
+    it('does not need to update a repo\'s milestone', () => {});
+});
+
+describe.only('testing async function createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd): number || boolean', () => {
+    it('should be a function', () => {
+        expect(Panta.createNewMilestoneInRepo).to.be.a('function');
+    });
+    it('should return false if the response contains an error', async () => {
+        const milestoneTitleThatAlreadyExists = '0.1.0';
+        expect(await Panta.createNewMilestoneInRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneTitleThatAlreadyExists, {debug: false, uiIsOn: false} )).to.be.false;
+    });
+    it('createNewMilestoneInRepo and deleteMilestoneFromRepo should each return milestoneID after success and false after failure', async () => {
+        const milestoneTitleThatDoesNotYetExist = '0.2.0';
+        const milestoneID = await Panta.createNewMilestoneInRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneTitleThatDoesNotYetExist, {debug: false, uiIsOn: false} )
+        expect(milestoneID).to.be.a('number');
+        // cleanup:
+        expect(await Panta.deleteMilestoneFromRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneID, {debug: false, uiIsOn: false} )).to.be.a('number');
+        expect(await Panta.deleteMilestoneFromRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, 1000, {debug: false, uiIsOn: false} )).to.be.false;
+    });
+});
+
+describe.only('testing async function getMilestoneIDByTitle(orgOrUser,repo, milestoneTitle, cmd): number || boolean', () => {
+    it('should be a function', () => {
+        expect(Panta.getMilestoneIDByTitle).to.be.a('function');
+    });
+    it('given a valid (i.e. exists) milestoneTitle as string, should return the ID of the milestone in orgOrUser/repo with that title', async () => {
+        const milestoneTitleThatExists = '0.1.0';
+        expect(await Panta.getMilestoneIDByTitle( TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneTitleThatExists, {debug: false, uiIsOn: false} )).to.be.a('number');
+    });
+    it('given an invalid (i.e. DNE) milestoneTitle as string, should return false', async () => {
+        const milestoneTitleThatDNE = 'nop';
+        expect(await Panta.getMilestoneIDByTitle( TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneTitleThatDNE, {debug: false, uiIsOn: false} )).to.be.false;
+    });
+    it('does not need to deal with duplicate titles since github repos do not allow two milestones with identical titles', () => {});
 });
