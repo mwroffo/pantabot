@@ -29,7 +29,7 @@ Note: <GITHUB_USERNAME_OR_ORGANIZATION> <REPO> indicate the owner and repo where
 
 ## Testing:
 
-In test/panta-test.js, make sure the testURL is correct for your Jira instance.
+do `npm run build-for-cli` or test scripts will fail. In test/panta-test.js, make sure the testURL is correct for your Jira instance.
 
 ## Namesake:
 A buggy Greek translation.
