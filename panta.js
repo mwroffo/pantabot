@@ -145,11 +145,11 @@ function convertXMLIssue2GithubIssue(body_xml, cmd) {
 */
 async function postIssue(issue, orgOrUser, repo, cmd) {
     try {
-        const gitHub = new Github(GITHUB_CONF);
         if (cmd.debug) {
             console.log(`(3) POSTING ISSUE to %s/%s`, orgOrUser, repo);
         }
         let json_response = {};
+        const gitHub = new Github(GITHUB_CONF);
         const Issue = gitHub.getIssues(orgOrUser, repo);
         json_response = await Issue.createIssue(issue);
         return json_response;
@@ -216,6 +216,39 @@ function handleErr(err, uiIsOn) {
     throw err;
 }
 
+/**
+ * Given a timestamp as string, returns boolean indicating whether (1) the issue was opened on or after startDate AND (2) has not been closed.
+ * @param {string} startDate
+ */
+function openedByDateAndStillOpen(issueID, startDate) {
+    return openedByDate(issueID, startDate) && isOpen();
+}
+function openedByDate(orgOrUser, repo, issueID, startDate, cmd) {
+
+}
+/**
+ * @param {string} orgOrUser 
+ * @param {string} repo 
+ * @param {number} issueID
+ * @param {Object} cmd indicates certain options.
+ */
+async function isOpen(orgOrUser, repo, issueID, cmd) {
+    try {
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        const response = await Issue.getIssue(issueID);
+        const issueState = response.data.state;
+        if (cmd.debug) console.log('issue is', issue)
+        return issueState === 'open';
+    } catch (err) {
+        console.log('outside if', err.response.status) // prints 404
+        if (404 != err.response.status) { // "cannot read property 'status' of undefined" -_-
+            // TODO bypass throw on 404, returning false instead.
+            handleErr(err, cmd.uiIsOn);
+        } else return false;
+    }
+}
+
 // if this module is imported somewhere else, do not run main. take care that this does not cause problems with test-suites.
 if (!module.parent) {
     setupCLI();
@@ -224,3 +257,6 @@ module.exports.multijira2github = multijira2github;
 module.exports.fetchXML = fetchXML;
 module.exports.convertXMLIssue2GithubIssue = convertXMLIssue2GithubIssue;
 module.exports.postIssue = postIssue;
+module.exports.isOpen = isOpen;
+module.exports.openedByDate = openedByDate;
+module.exports.openedByDateAndStillOpen = openedByDateAndStillOpen;
