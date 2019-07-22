@@ -223,8 +223,32 @@ function handleErr(err, uiIsOn) {
 function openedByDateAndStillOpen(issueID, startDate) {
     return openedByDate(issueID, startDate) && isOpen();
 }
-function openedByDate(orgOrUser, repo, issueID, startDate, cmd) {
-
+/**
+ * if issueID was opened on or after startDate, return true, else return false.
+ * @param {*} orgOrUser
+ * @param {*} repo 
+ * @param {*} issueID 
+ * @param {string} startDate in format '2019-07-17T15:09:36Z'
+ * @param {*} cmd
+ */
+async function openedByDate(orgOrUser, repo, issueID, startDate, cmd) {
+    try {
+        startDate = new Date(startDate);
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        const response = await Issue.getIssue(issueID);
+        const issue = response.data;
+        const issueCreatedAt = new Date(issue.created_at);
+        if (cmd.debug) {
+            console.log('issue.created_at is', issue.created_at);
+            console.log('issueUpdatedAt is', issueCreatedAt);
+        }
+        return issueCreatedAt >= startDate;
+    } catch (err) {
+        // issue did not exist, etc.
+        // console.log(`printing err and returning false instead of throwing ${err}`);
+        return false;
+    }
 }
 /**
  * @param {string} orgOrUser 
@@ -237,15 +261,13 @@ async function isOpen(orgOrUser, repo, issueID, cmd) {
         const gitHub = new Github(GITHUB_CONF);
         const Issue = gitHub.getIssues(orgOrUser, repo);
         const response = await Issue.getIssue(issueID);
-        const issueState = response.data.state;
-        if (cmd.debug) console.log('issue is', issue)
-        return issueState === 'open';
+        const issue = response.data;
+        if (cmd.debug) console.log('issue.state is', issue.state);
+        return issue.state === 'open';
     } catch (err) {
-        console.log('outside if', err.response.status) // prints 404
-        if (404 != err.response.status) { // "cannot read property 'status' of undefined" -_-
-            // TODO bypass throw on 404, returning false instead.
-            handleErr(err, cmd.uiIsOn);
-        } else return false;
+        // todo distinguish 404, 301, 410?
+        // console.log(`printing err and returning false instead of throwing ${err}`);
+        return false;
     }
 }
 
