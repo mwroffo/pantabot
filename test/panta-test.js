@@ -76,8 +76,23 @@ describe.only('isOpen(orgOrUser, repo, issueID): boolean', () => {
         const issueThatDoesNotExist = 1000;
         const issueThatExistsButIsClosed = 1;
         const issueThatExistsAndIsOpen = 54;
-        expect(await Panta.isOpen(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatDoesNotExist, {uiIsOn: false} )).to.be.false;
-        expect(await Panta.isOpen(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatExistsButIsClosed, {debug: true, uiIsOn: false} )).to.be.false;
-        expect(await Panta.isOpen(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatExistsAndIsOpen, {uiIsOn: false} )).to.be.true;
+        expect(await Panta.isOpen(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatDoesNotExist, {debug: false, uiIsOn: false} )).to.be.false;
+        expect(await Panta.isOpen(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatExistsButIsClosed, {debug: false, uiIsOn: false} )).to.be.false;
+        expect(await Panta.isOpen(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatExistsAndIsOpen, {debug: false, uiIsOn: false} )).to.be.true;
     });
-})
+});
+
+describe.only('openedByDate(orgOrUser, repo, issueID, startDate, cmd): boolean', () => {
+    it('should be a function', () => {
+        expect(Panta.openedByDate).to.be.a('function');
+    });
+    it('should correctly return whether an issue was opened on or after startDate', async () => {
+        const issueThatDoesNotExist = 1000;
+        const issueOpenedBeforeStartDate = 1;
+        const issueOpenedAfterStartDate = 54;
+        const testStartDate = '2019-07-19T15:09:36Z';
+        expect(await Panta.openedByDate(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatDoesNotExist, testStartDate, {debug: false, uiIsOn: false} )).to.be.false;
+        expect(await Panta.openedByDate(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenedBeforeStartDate, testStartDate, {debug: false, uiIsOn: false} )).to.be.false;
+        expect(await Panta.openedByDate(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenedAfterStartDate, testStartDate, {debug: false, uiIsOn: false} )).to.be.true;
+    });
+});
