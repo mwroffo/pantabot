@@ -282,7 +282,22 @@ async function isOpen(orgOrUser, repo, issueID, cmd) {
  */
 async function updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitle, cmd) {
     // TODO
-    return null;
+    try {
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        let milestoneID = undefined;
+
+        milestoneID = await getMilestoneIDByTitle(orgOrUser, repo, newMilestoneTitle, cmd);
+        if (!milestoneID)
+            milestoneID = await createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd);
+        const response = await Issue.editIssue(issueID, {milestone: milestoneID} );
+        
+        if (cmd.debug) console.log(`${response.status} successfully updated milestone ${newMilestoneTitle} of issue ${issueID} on ${orgOrUser}/${repo} to have milestone ${newMilestoneTitle}`)
+        return milestoneID;
+    } catch (err) {
+        console.log(`in updateMilestoneOfIssue(${newMilestoneTitle}): throwing error ${err.response.status}` );
+        throw err;
+    }
 }
 
 /**
@@ -301,7 +316,7 @@ async function createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd)
         if (cmd.debug) console.log(`successfully added milestone ${newMilestoneTitle} to ${orgOrUser}/${repo} with ID ${newMilestoneID}`)
         return newMilestoneID;
     } catch (err) {
-        console.log(`in createNewMilestoneInRepo(${newMilestoneTitle}): catching error ${err.response.status} and returning false` );
+        if (cmd.debug) console.log(`in createNewMilestoneInRepo(${newMilestoneTitle}): catching error ${err.response.status} and returning false` );
         return false;
         throw err;
     }
@@ -345,11 +360,12 @@ async function deleteMilestoneFromRepo(orgOrUser, repo, milestoneID, cmd) {
         const gitHub = new Github(GITHUB_CONF);
         const Issue = gitHub.getIssues(orgOrUser, repo);
         const response = await Issue.deleteMilestone(milestoneID);
-        if (response.status === 204) console.log(`in deleteMilestoneFromRepo: successfully removed milestone with ID ${milestoneID} from ${orgOrUser}/${repo}`);
-        else console.log(`in deleteMilestoneFromRepo: unexpected status: ${response.status} while response is ${response}`);
-        return milestoneID;
+        if (cmd.debug) {
+            if (response.status === 204) console.log(`in deleteMilestoneFromRepo: successfully removed milestone with ID ${milestoneID} from ${orgOrUser}/${repo}`);
+            else console.log(`in deleteMilestoneFromRepo: unexpected status: ${response.status} while response is ${response}`);
+        } return milestoneID;
     } catch (err) {
-        console.log(`in deleteMilestoneFromRepo: throwing error ${err.response.status} and returning false`);
+        if (cmd.debug) console.log(`in deleteMilestoneFromRepo: throwing error ${err.response.status} and returning false`);
         return false;
         throw err;
     }
