@@ -123,19 +123,16 @@ describe.only('testing async function createNewMilestoneInRepo(orgOrUser, repo, 
     });
     it('should throw if the response contains an error', async () => {
         const milestoneTitleThatAlreadyExists = '0.1.0';
-        expect(async () => {
-            await Panta.createNewMilestoneInRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneTitleThatAlreadyExists, {debug: true, uiIsOn: false} )
-        }).to.throw();
+        expect(await Panta.createNewMilestoneInRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneTitleThatAlreadyExists, {debug: true, uiIsOn: false} )).to.be.false;
     });
-    it('createNewMilestoneInRepo and deleteMilestoneFromRepo should each return milestoneID after success and false after failure', async () => {
+    it('createNewMilestoneInRepo and deleteMilestoneFromRepo should each return milestoneID after success and throw on failure', async () => {
         const milestoneTitleThatDoesNotYetExist = '0.2.0';
-        const milestoneID = await Panta.createNewMilestoneInRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneTitleThatDoesNotYetExist, {debug: false, uiIsOn: false} );
+        const milestoneID = await Panta.createNewMilestoneInRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneTitleThatDoesNotYetExist, {debug: true, uiIsOn: false} );
         expect(milestoneID).to.be.a('number');
         // cleanup:
         expect(await Panta.deleteMilestoneFromRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneID, {debug: false, uiIsOn: false} )).to.be.a('number');
-        expect(async () => {
-            await Panta.deleteMilestoneFromRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, 1000, {debug: false, uiIsOn: false} );
-        }).to.throw();
+        // now delete a milestone that DNE:
+        expect(async () => await Panta.deleteMilestoneFromRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, 1000, {debug: false, uiIsOn: false} )).to.be.false;
     });
 });
 
