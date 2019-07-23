@@ -13,7 +13,9 @@ let TEST_CONF = {
         TITLE: 'Build a tool that automates issue-maintenance between GitHub and Jira',
         BODY: '<p>We want Zowe to be an open-source project; but keeping the open-source community updated on internal progress produces hours of tedium for project managers like <a href="https://jira.rocketsoftware.com/secure/ViewProfile.jspa?name=nrogers" class="user-hover" rel="nrogers">Nolan Rogers</a> and Scrum Masters like <a href="https://jira.rocketsoftware.com/secure/ViewProfile.jspa?name=rchowdhary" class="user-hover" rel="rchowdhary">Reet Chowdhary</a> who have to fill out GitHub issues manually. This tool (eventually a bot, perhaps) will automate the process of creating GitHub issues by fetching metadata for selected Jira issues, converting them into GitHub-friendly issues, and posting them to a corresponding repo under the Zowe organization on GitHub.</p>\r\n\r\n<p>MVP:<br/>\r\n [ ] port a selected jira issue to github with a simple command-line interface. Hopefully mapping the statuses in both Jira and github<br/>\r\n [ ] add a basic UI for usability</p>\r\n\r\n<p>Nice to have:<br/>\r\n [ ] fetch JSON directly from Jira rather than parsing XML (which requires only ordinary permissions). mroffo is waiting on RAC ticket for Jira API access</p>\r\n\r\n<p>Really nice to have:<br/>\r\n [ ] accomplish this in reverse: Issues created on a zowe github repo by open-source contributors automatically prompt <a href="https://jira.rocketsoftware.com/secure/ViewProfile.jspa?name=sgrady" class="user-hover" rel="sgrady">Sean Grady</a> for inclusion in Rocket\'s internal Jira. (likely will be a separate Issue)</p>',
         LABELS: ['Story', 'workspace', 'zowe', 'Workflows']
-    }
+    },
+    START_DATE: '2019-07-23T10:00:00Z',
+    END_DATE: '2019-07-23T18:00:00Z'
 };
 let issueAsXML;
 let issueAsJSON;
@@ -68,7 +70,7 @@ describe('postIssue(githubIssueAsJSON): response', () => {
     });
 });
 
-describe.only('isOpen(orgOrUser, repo, issueID): boolean', () => {
+describe('isOpen(orgOrUser, repo, issueID): boolean', () => {
     it('should be a function', () => {
         expect(Panta.isOpen).to.be.a('function');
     });
@@ -94,6 +96,30 @@ describe('openedByDate(orgOrUser, repo, issueID, startDate, cmd): boolean', () =
         expect(await Panta.openedByDate(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueThatDoesNotExist, testStartDate, {debug: false, uiIsOn: false} )).to.be.false;
         expect(await Panta.openedByDate(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenedBeforeStartDate, testStartDate, {debug: false, uiIsOn: false} )).to.be.false;
         expect(await Panta.openedByDate(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenedAfterStartDate, testStartDate, {debug: false, uiIsOn: false} )).to.be.true;
+    });
+});
+
+describe('changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd): boolean', () => {
+    it('should be a function', () => {
+        expect(Panta.changedToClosed).to.be.a('function');
+    });
+    it('should return true if an issue was (1) not closed before startDate, then (2) became closed before endDate', async () => {
+        const issueOpenThenClosed = 57;
+        const issueDNEThenClosed = 59;
+        expect(Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenThenClosed, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: false, uiIsOn: false} )).to.be.true;
+        expect(Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueDNEThenClosed, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: false, uiIsOn: false} )).to.be.true;
+    });
+    it('should return false if an issue was open before startDate and remained open upon endDate', async () => {
+        const issueOpenThenOpen = 56;
+        expect(Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenThenOpen, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: false, uiIsOn: false} )).to.be.false;
+    });
+    it('should return false if an issue was closed before startDate, and remained closed upon endDate', async () => {
+        const issueClosedThenClosed = 50;
+        expect(Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueClosedThenClosed, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: false, uiIsOn: false} )).to.be.false;
+    });
+    it('should return false if an issue was closed before startDate, and was reopened between startDate and endDate', async () => {
+        const issueClosedThenReopened = 54;
+        expect(Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueClosedThenReopened, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: false, uiIsOn: false} )).to.be.false;
     });
 });
 
@@ -157,7 +183,13 @@ describe.only('multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilesto
     xit('should be a function', () => {
         expect(Panta.multiUpdateMilestoneOfIssue).to.be.a('function');
     });
-    it('given existing issues under same repo, should add milestone that does not yet exist and assign it without creating a duplicate milestone', async () => {
+    it('given existing issues under same repo, should add milestone that DOES exist and assign it without creating a duplicate milestone', async () => {
+        const issueIDsThatExist = [ 56, 57, 58 ];
+        const milestoneTitleThatDNE = '0.1.0';
+        let issueIDsUpdated = await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDsThatExist, milestoneTitleThatDNE, {debug: true, uiIsOn: false} );
+        expect(issueIDsUpdated).to.be.an('array').which.deep.equals([ 56, 57, 58 ]);
+    });
+    it('given existing issues under same repo, should add milestone that DNE and assign it without residual dups', async () => {
         const issueIDsThatExist = [ 56, 57, 58 ];
         const milestoneTitleThatDNE = '0.2.0';
         let issueIDsUpdated = await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDsThatExist, milestoneTitleThatDNE, {debug: true, uiIsOn: false} );
@@ -170,7 +202,7 @@ describe.only('multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilesto
     });
 });
 
-describe('multiReposUpdateMilestoneOfIssues(ownerReposArray)', () => {
+describe('multiReposUpdateMilestoneOfIssues(ownerReposArray, issueIDs...)', () => {
     it('should be a function', () => {
         expect(Panta.multiReposUpdateMilestoneOfIssues).to.be.a('function');
     });
