@@ -272,15 +272,41 @@ async function isOpen(orgOrUser, repo, issueID, cmd) {
         return false;
     }
 }
+
 /**
- * queries the issue with the given issueID under orgOrUser/repo and edits its milestone to be `newMilestoneTitle`. returns true for normal http responses and false for 300 or 400s.
+ * queries the issue with the given issueID under orgOrUser/repo and edits its milestone to be the existing milestone with `milestoneID`. returns the milestoneID for normal http responses and false for 300 or 400s.
  * @param {string} orgOrUser 
+ * @param {string} repo 
+ * @param {number} issueID 
+ * @param {number} milestoneID 
+ * @param {object} cmd 
+ */
+async function updateMilestoneOfIssue(orgOrUser, repo, issueID, milestoneID, cmd) {
+    try {
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        
+        const response = await Issue.editIssue(issueID, {milestone: milestoneID} );
+        
+        if (cmd.debug) console.log(`in updateMilestoneOfIssue(${orgOrUser}/${repo}/${issueID}) ${response.status} successfully updated milestone ${milestoneID} of issue ${issueID} on ${orgOrUser}/${repo} to have milestone ${milestoneID}`)
+        return milestoneID;
+    } catch (err) {
+        console.log(`in updateMilestoneOfIssue(${milestoneID}): throwing error ${err.response.status} and returning false` );
+        return false;
+        throw err;
+    }
+}
+
+/**
+ * DEPRECATED for bad OOP. Does not adhere to SRP. In other words this method is legacy but not legendary :(
+ * queries the issue with the given issueID under orgOrUser/repo and edits its milestone to be `newMilestoneTitle` AND creates a new milestone in the repo if one with title `newMilestoneTitle` DNE. returns true for normal http responses and false for 300 or 400s.
+ * @param {string} orgOrUser
  * @param {string} repo 
  * @param {number} issueID 
  * @param {string} newMilestoneTitle 
  * @param {object} cmd 
  */
-async function updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitle, cmd) {
+async function deprecatedUpdateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitle, cmd) {
     try {
         const gitHub = new Github(GITHUB_CONF);
         const Issue = gitHub.getIssues(orgOrUser, repo);
@@ -291,16 +317,17 @@ async function updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitl
             milestoneID = await createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd);
         const response = await Issue.editIssue(issueID, {milestone: milestoneID} );
         
-        if (cmd.debug) console.log(`${response.status} successfully updated milestone ${newMilestoneTitle} of issue ${issueID} on ${orgOrUser}/${repo} to have milestone ${newMilestoneTitle}`)
+        if (cmd.debug) console.log(`in updateMilestoneOfIssue(${orgOrUser}/${repo}/${issueID}) ${response.status} successfully updated milestone ${newMilestoneTitle} of issue ${issueID} on ${orgOrUser}/${repo} to have milestone ${newMilestoneTitle}`)
         return milestoneID;
     } catch (err) {
-        console.log(`in updateMilestoneOfIssue(${newMilestoneTitle}): throwing error ${err.response.status}` );
+        console.log(`in updateMilestoneOfIssue(${newMilestoneTitle}): throwing error ${err.response.status} and returning false` );
+        return false;
         throw err;
     }
 }
 /**
  * given an orgOrUser, a single repo, an array of issueIDs, and a newMilestoneTitle, adds a milestone with that title to each issue `i` in `issueIDs`, where `i` exists in `orgOrUser`/`repo`.
- * if some issueID `issue` does not exist under orgOrUser, throw err.
+ * if some issueID `issue` does not exist under orgOrUser, throw err. returns an array of the issues that were successfully updated.
  * @param {*} orgOrUser 
  * @param {*} repo 
  * @param {*} issueIDs 
@@ -308,6 +335,30 @@ async function updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitl
  * @param {*} cmd 
  */
 async function multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd) {
+    if (!Array.isArray(issueIDs)) throw new Error(`issueIDs must be an array, but is ${typeof issueIDs}`)
+    try {
+        let issuesUpdated = [];
+
+        let milestoneID = await getMilestoneIDByTitle(orgOrUser, repo, newMilestoneTitle, cmd);
+        if (!milestoneID)
+            milestoneID = await createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd);
+
+        for (let i=0; i<issueIDs.length; i++) {
+            let issueID = issueIDs[i];
+            const newMilestoneID = await updateMilestoneOfIssue(orgOrUser, repo, issueID, milestoneID, cmd);
+            if (cmd.debug) console.log(`in multiUpdateMilestoneOfIssue(${orgOrUser}/${repo}, ${issueIDs}, ${newMilestoneTitle}): successfully added milestone ${newMilestoneTitle} which has milestoneID ${newMilestoneID} to ${orgOrUser}/${repo}/issues/${issueID}`);
+            issuesUpdated.push(issueID);
+        }
+
+        return issuesUpdated;
+    } catch (err) {
+        if (cmd.debug) console.log(`in multiUpdateMilestoneOfIssue(${orgOrUser}/${repo}, ${issueIDs}, ${newMilestoneTitle}): catching error ${err} and returning false` );
+        return false;
+        throw err;
+    }
+}
+
+async function multiReposUpdateMilestoneOfIssues() {
 
 }
 
@@ -324,7 +375,7 @@ async function createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd)
         const Issue = gitHub.getIssues(orgOrUser, repo);
         const response = await Issue.createMilestone( {title: newMilestoneTitle} );
         const newMilestoneID = response.data.number;
-        if (cmd.debug) console.log(`successfully added milestone ${newMilestoneTitle} to ${orgOrUser}/${repo} with ID ${newMilestoneID}`)
+        if (cmd.debug) console.log(`in createNewMilestoneInRepo successfully added milestone ${newMilestoneTitle} to ${orgOrUser}/${repo} with ID ${newMilestoneID}`)
         return newMilestoneID;
     } catch (err) {
         if (cmd.debug) console.log(`in createNewMilestoneInRepo(${newMilestoneTitle}): catching error ${err.response.status} and returning false` );
@@ -352,7 +403,9 @@ async function getMilestoneIDByTitle(orgOrUser, repo, milestoneTitle, cmd) {
             if (milestone.title === milestoneTitle) {
                 idToReturn = milestone.number;
             }
-            if (cmd.debug) console.log(`${milestone.title} === ${milestoneTitle} is ${milestone.title === milestoneTitle}`);
+            if (cmd.debug) {
+                console.log(`in getMilestoneIDByTitle(${milestoneTitle}): ${milestone.title} === ${milestoneTitle} is ${milestone.title === milestoneTitle}. returning ${idToReturn}`);
+            }
         });
         return idToReturn;
     } catch (err) {
@@ -398,3 +451,4 @@ module.exports.createNewMilestoneInRepo = createNewMilestoneInRepo;
 module.exports.getMilestoneIDByTitle = getMilestoneIDByTitle;
 module.exports.deleteMilestoneFromRepo = deleteMilestoneFromRepo;
 module.exports.multiUpdateMilestoneOfIssue = multiUpdateMilestoneOfIssue;
+module.exports.multiReposUpdateMilestoneOfIssues = multiReposUpdateMilestoneOfIssues;
