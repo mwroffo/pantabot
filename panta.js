@@ -220,7 +220,7 @@ function handleErr(err, uiIsOn) {
  * Given a timestamp as string, returns boolean indicating whether (1) the issue was opened on or after startDate AND (2) has not been closed.
  * @param {string} startDate
  */
-async function openedByDateAndIsOpen(issueID, startDate) {
+async function isOpenAndOpenedByDate(issueID, startDate) {
     return await openedByDate(issueID, startDate) && await isOpen(issueID);
 }
 
@@ -268,7 +268,7 @@ async function isOpen(orgOrUser, repo, issueID, cmd) {
         return issue.state === 'open';
     } catch (err) {
         // todo distinguish 404, 301, 410?
-        // console.log(`printing err and returning false instead of throwing ${err}`);
+        if (cmd.debug) console.log(`printing err and returning false instead of throwing ${err}`);
         return false;
     }
 }
@@ -281,7 +281,6 @@ async function isOpen(orgOrUser, repo, issueID, cmd) {
  * @param {object} cmd 
  */
 async function updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitle, cmd) {
-    // TODO
     try {
         const gitHub = new Github(GITHUB_CONF);
         const Issue = gitHub.getIssues(orgOrUser, repo);
@@ -298,6 +297,18 @@ async function updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitl
         console.log(`in updateMilestoneOfIssue(${newMilestoneTitle}): throwing error ${err.response.status}` );
         throw err;
     }
+}
+/**
+ * given an orgOrUser, a single repo, an array of issueIDs, and a newMilestoneTitle, adds a milestone with that title to each issue `i` in `issueIDs`, where `i` exists in `orgOrUser`/`repo`.
+ * if some issueID `issue` does not exist under orgOrUser, throw err.
+ * @param {*} orgOrUser 
+ * @param {*} repo 
+ * @param {*} issueIDs 
+ * @param {*} newMilestoneTitle 
+ * @param {*} cmd 
+ */
+async function multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd) {
+
 }
 
 /**
@@ -381,8 +392,9 @@ module.exports.convertXMLIssue2GithubIssue = convertXMLIssue2GithubIssue;
 module.exports.postIssue = postIssue;
 module.exports.isOpen = isOpen;
 module.exports.openedByDate = openedByDate;
-module.exports.openedByDateAndIsOpen = openedByDateAndIsOpen;
+module.exports.isOpenAndOpenedByDate = isOpenAndOpenedByDate;
 module.exports.updateMilestoneOfIssue = updateMilestoneOfIssue;
 module.exports.createNewMilestoneInRepo = createNewMilestoneInRepo;
 module.exports.getMilestoneIDByTitle = getMilestoneIDByTitle;
 module.exports.deleteMilestoneFromRepo = deleteMilestoneFromRepo;
+module.exports.multiUpdateMilestoneOfIssue = multiUpdateMilestoneOfIssue;
