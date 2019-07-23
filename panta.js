@@ -301,7 +301,8 @@ async function createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd)
         if (cmd.debug) console.log(`successfully added milestone ${newMilestoneTitle} to ${orgOrUser}/${repo} with ID ${newMilestoneID}`)
         return newMilestoneID;
     } catch (err) {
-        console.log(`in createNewMilestoneInRepo(${newMilestoneTitle}): catching error ${err.response.status}`);
+        console.log(`in createNewMilestoneInRepo(${newMilestoneTitle}): catching error ${err.response.status} and returning false` );
+        return false;
         throw err;
     }
 }
@@ -348,7 +349,8 @@ async function deleteMilestoneFromRepo(orgOrUser, repo, milestoneID, cmd) {
         else console.log(`in deleteMilestoneFromRepo: unexpected status: ${response.status} while response is ${response}`);
         return milestoneID;
     } catch (err) {
-        console.log(`in deleteMilestoneFromRepo: throwing error ${err.response.status}`);
+        console.log(`in deleteMilestoneFromRepo: throwing error ${err.response.status} and returning false`);
+        return false;
         throw err;
     }
 }
