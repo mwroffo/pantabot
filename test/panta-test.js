@@ -152,3 +152,21 @@ describe.only('testing async function getMilestoneIDByTitle(orgOrUser,repo, mile
     });
     it('does not need to deal with duplicate titles since github repos do not allow two milestones with identical titles', () => {});
 });
+
+describe.only('testing async function multiUpdateMilestoneOfIssue(orgOrUser,repo, issueIDs, newMilestoneTitle, cmd): number || boolean', () => {
+    it('should be a function', () => {
+        expect(Panta.multiUpdateMilestoneOfIssue).to.be.a('function');
+    });
+    it('given existing issues under same repo, should add milestone that does not yet exist', async () => {
+        expect(await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDs, milestoneTitleThatDNE, {debug: false, uiIsOn: false} )).to.be.a('number');
+    });
+    it('given one or more issues that do not exist, should return false', async () => {
+        expect(await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDs, milestoneTitleThatDNE, {debug: false, uiIsOn: false} )).to.be.false;
+    });
+});
+
+describe.only('multiReposUpdateMilestoneOfIssues(ownerReposArray', () => {
+    it('should be a function', () => {
+        expect(Panta.multiReposUpdateMilestoneOfIssues).to.be.a('function');
+    });
+});
