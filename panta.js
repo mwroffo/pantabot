@@ -364,12 +364,11 @@ async function getTargetIssues(orgOrUser, repo, startDate, endDate, cmd) {
  * @param {*} cmd 
  */
 async function multiRepoGetTargetIssues(ownerRepos, startDate, endDate, cmd) {
-    // TODO
     try {
         let toReturn = {};
         for (let i=0; i<ownerRepos.length; i++) {
             const ownerRepo = ownerRepos[i];
-            const [owner, repo] = ownerRepo.split(' ');
+            const [owner, repo] = ownerRepo.split('/');
             const issuesThatChangedToClosed = await getTargetIssues(owner, repo, startDate, endDate, cmd);
             toReturn[ownerRepo] = issuesThatChangedToClosed;
             if (cmd.debug) {
@@ -489,22 +488,29 @@ async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
 
         for (let i=0; i<ownerRepos.length; i++) {
             const ownerRepo = ownerRepos[i];
-            toReturn[ownerRepo] = undefined;
-        }
-
-        for (let i=0; i<ownerRepos.length; i++) {
-            const ownerRepo = ownerRepos[i];
-            const [orgOrUser, repo] = ownerRepo.split(' ');
+            const [orgOrUser, repo] = ownerRepo.split('/');
             const issueIDs = issueIDsClusters[i];
             const issuesUpdated = await multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd);
             toReturn[ownerRepo] = issuesUpdated;
             if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues: successfully updated ${orgOrUser}/${repo}/${issueIDs} with ${newMilestoneTitle}`);
         }
-        if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues: successfully submitted milestone ${newMilestoneTitle} to`, options);
         return toReturn;
     } catch (err) {
         if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues(${options}, ${newMilestoneTitle}): catching error ${err} and throwing` );
         // return false;
+        throw err;
+    }
+}
+
+async function doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, ownerRepos, cmd) {
+    // TODO
+    try {
+        const options = await multiRepoGetTargetIssues(ownerRepos, startDate, endDate, cmd);
+        const updatesDone = await multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd);
+        if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues: successfully submitted milestone ${newMilestoneTitle} to`, updatesDone);
+        return updatesDone;
+    } catch (err) {
+        if (cmd.debug) console.log(`in doBulkMilestoneUpdate(${newMilestoneTitle}, ${startDate}, ${endDate}, ${ownerRepos}): catching error ${err} and throwing` );
         throw err;
     }
 }
@@ -604,3 +610,4 @@ module.exports.multiReposUpdateMilestoneOfIssues = multiReposUpdateMilestoneOfIs
 module.exports.changedToClosed = changedToClosed;
 module.exports.getTargetIssues = getTargetIssues; // gets target issues for single repo
 module.exports.multiRepoGetTargetIssues = multiRepoGetTargetIssues; // runs getTargetIssues on multiple repos
+module.exports.doBulkMilestoneUpdate = doBulkMilestoneUpdate;
