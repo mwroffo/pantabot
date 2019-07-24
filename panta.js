@@ -244,7 +244,7 @@ async function openedByDate(orgOrUser, repo, issueID, startDate, cmd) {
             console.log('issue.created_at is', issue.created_at);
             console.log('issueUpdatedAt is', issueCreatedAt);
         }
-        return issueCreatedAt >= startDate;
+        return issueCreatedAt <= startDate;
     } catch (err) {
         // issue did not exist, etc.
         // console.log(`printing err and returning false instead of throwing ${err}`);
@@ -253,6 +253,7 @@ async function openedByDate(orgOrUser, repo, issueID, startDate, cmd) {
 }
 
 /**
+ * returns a boolean indicating whether the issueID passed as parameter represents a valid issue in orgOrUser/repo
  * @param {string} orgOrUser 
  * @param {string} repo 
  * @param {number} issueID
@@ -269,6 +270,46 @@ async function isOpen(orgOrUser, repo, issueID, cmd) {
     } catch (err) {
         // todo distinguish 404, 301, 410?
         if (cmd.debug) console.log(`printing err and returning false instead of throwing ${err}`);
+        return false;
+    }
+}
+
+/**
+ * return boolean indicating whether orgOrUser/repo/issueID was (1) not closed before startDate, and (2) became closed between startDate and endDate. 
+ * @param {*} orgOrUser 
+ * @param {*} repo 
+ * @param {*} issueID 
+ * @param {*} startDate 
+ * @param {*} endDate 
+ * @param {*} cmd 
+ */
+async function changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd) {
+    try {
+        let notClosedBeforeStart = false;
+        let closedBeforeEnd = false;
+        startDate = new Date(startDate);
+        endDate = new Date(endDate);
+
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        const response = await Issue.getIssue(issueID);
+        const issue = response.data;
+        // careful: for open issues, closedAt is Wed Dec 31 1969 19:00:00 GMT-0500
+        if (null !== issue.closed_at) {
+            const closedAt = new Date(issue.closed_at);
+            closedBeforeEnd = closedAt < endDate;
+            notClosedBeforeStart = !(closedAt < startDate);
+        }    
+        if (cmd.debug) {
+            if (null === issue.closed_at) {
+                console.log(`in changedToClosed(${orgOrUser}, ${repo}, ${issueID}), issue is not yet closed. returning false.`);
+            }
+            console.log(`in changedToClosed(${orgOrUser}, ${repo}, ${issueID}), closedBeforeEnd is ${closedBeforeEnd}, notClosedBeforeStart is ${notClosedBeforeStart}, and closedBeforeEnd&&notClosedBeforeStart makes return value ${closedBeforeEnd && notClosedBeforeStart}`);
+        }
+        return closedBeforeEnd && notClosedBeforeStart;
+    } catch (err) {
+        // todo distinguish 404, 301, 410?
+        if (cmd.debug) console.log(`in changedToClosed, returning false instead of throwing ${err}`);
         return false;
     }
 }
@@ -452,3 +493,4 @@ module.exports.getMilestoneIDByTitle = getMilestoneIDByTitle;
 module.exports.deleteMilestoneFromRepo = deleteMilestoneFromRepo;
 module.exports.multiUpdateMilestoneOfIssue = multiUpdateMilestoneOfIssue;
 module.exports.multiReposUpdateMilestoneOfIssues = multiReposUpdateMilestoneOfIssues;
+module.exports.changedToClosed = changedToClosed;
