@@ -248,7 +248,10 @@ async function openedByDate(orgOrUser, repo, issueID, startDate, cmd) {
     } catch (err) {
         // issue did not exist, etc.
         // console.log(`printing err and returning false instead of throwing ${err}`);
-        return false;
+        console.log(err.response.status);
+        if (404 !== err.response.status) {
+            handleErr(err, cmd.uiIsOn)
+        } else return false;
     }
 }
 
@@ -312,6 +315,58 @@ async function changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd
         if (cmd.debug) console.log(`in changedToClosed, returning false instead of throwing ${err}`);
         return false;
     }
+}
+
+/**
+ * given a repo, returns an array containing those that satisfy changedToClosed for the given date range.
+ * @param {*} orgOrUser 
+ * @param {*} repo
+ * @param {*} startDate 
+ * @param {*} endDate 
+ * @param {*} cmd 
+ */
+async function getTargetIssues(orgOrUser, repo, startDate, endDate, cmd) {
+    try {
+        // TODO
+        let toReturn = [];
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        const options = {
+            "state":"all",
+            "since":startDate
+        }
+        const response = await Issue.listIssues(options);
+
+        const issues = response.data;
+
+        for (let i=0; i<issues.length; i++) {
+            const issueID = issues[i].number;
+            let issueChangedToClosed = await changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd);
+            if (issueChangedToClosed) {
+                toReturn.push(issueID);
+            }
+            if (cmd.debug) {
+                console.log(`in getTargetIssues(${orgOrUser}, ${repo}), changedToClosed(${issueID}) is ${issueChangedToClosed}, toReturn is`, toReturn);
+            }
+        }
+        return toReturn;
+    } catch (err) {
+        // todo distinguish 404, 301, 410?
+        if (cmd.debug) console.log(`in getTargetIssues, returning false instead of throwing ${err}`);
+        return false;
+    }
+}
+
+/**
+ * given an array of owner/repo pairs, returns an object where keys are owner/repo pairs, and values are arrays of issues from that owner/repo that satisfied getTargetIssues.
+ * @param {*} repos 
+ * @param {*} startDate 
+ * @param {*} endDate 
+ * @param {*} cmd 
+ */
+async function multiRepoGetTargetIssue(repos, startDate, endDate, cmd) {
+    // TODO
+    return null;
 }
 
 /**
@@ -399,8 +454,45 @@ async function multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilesto
     }
 }
 
-async function multiReposUpdateMilestoneOfIssues() {
+/**
+ * takes options object of format
+ * const options = {
+ *  "mwroffo testrepo": [56,57,58],
+ *  "mwroffo testrepo2": [1],
+ *  "mwroffo testrepo3": [1,2]
+ * } and then runs multiUpdateMilestoneOfIssue on each key-value pair, returning an object identical to `options` upon success, or on failure, throw err.
+ * @param {*} options 
+ * @param {*} newMilestoneTitle 
+ * @param {*} cmd 
+ */
+async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd) {
+    if (!(typeof options === 'object')) throw new Error(`options must be an object, but is ${typeof object}`)
+    if (!(typeof newMilestoneTitle === 'string')) throw new Error(`newMilestoneTitle must be a string, but is ${typeof newMilestoneTitle}`)
+    try {
+        const ownerRepos = Object.keys(options);
+        const issueIDsClusters = Object.values(options);
+        let toReturn = {};
 
+        for (let i=0; i<ownerRepos.length; i++) {
+            const ownerRepo = ownerRepos[i];
+            toReturn[ownerRepo] = undefined;
+        }
+
+        for (let i=0; i<ownerRepos.length; i++) {
+            const ownerRepo = ownerRepos[i];
+            const [orgOrUser, repo] = ownerRepo.split(' ');
+            const issueIDs = issueIDsClusters[i];
+            const issuesUpdated = await multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd);
+            toReturn[ownerRepo] = issuesUpdated;
+            if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues: successfully updated ${orgOrUser}/${repo}/${issueIDs} with ${newMilestoneTitle}`);
+        }
+        if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues: successfully submitted milestone ${newMilestoneTitle} to`, options);
+        return toReturn;
+    } catch (err) {
+        if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues(${options}, ${newMilestoneTitle}): catching error ${err} and throwing` );
+        // return false;
+        throw err;
+    }
 }
 
 /**
@@ -419,8 +511,6 @@ async function createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd)
         if (cmd.debug) console.log(`in createNewMilestoneInRepo successfully added milestone ${newMilestoneTitle} to ${orgOrUser}/${repo} with ID ${newMilestoneID}`)
         return newMilestoneID;
     } catch (err) {
-        if (cmd.debug) console.log(`in createNewMilestoneInRepo(${newMilestoneTitle}): catching error ${err.response.status} and returning false` );
-        return false;
         throw err;
     }
 }
@@ -450,6 +540,10 @@ async function getMilestoneIDByTitle(orgOrUser, repo, milestoneTitle, cmd) {
         });
         return idToReturn;
     } catch (err) {
+        console.log(`err.response.status is`, err.response.status);
+        if (cmd.debug) console.log(`in createNewMilestoneInRepo(${newMilestoneTitle}): catching error ${err.response.status} and returning false` );
+        if (err.response.status === 404)
+            return false;
         throw err;
     }
 }
@@ -494,3 +588,5 @@ module.exports.deleteMilestoneFromRepo = deleteMilestoneFromRepo;
 module.exports.multiUpdateMilestoneOfIssue = multiUpdateMilestoneOfIssue;
 module.exports.multiReposUpdateMilestoneOfIssues = multiReposUpdateMilestoneOfIssues;
 module.exports.changedToClosed = changedToClosed;
+module.exports.getTargetIssues = getTargetIssues; // gets target issues for single repo
+// module.exports.multiRepoGetTargetIssues = multiRepoGetTargetIssues; // runs getTargetIssues on multiple repos

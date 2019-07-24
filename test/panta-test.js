@@ -99,7 +99,7 @@ describe('openedByDate(orgOrUser, repo, issueID, startDate, cmd): boolean', () =
     });
 });
 
-describe('changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd): boolean', () => {
+describe.only('changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd): boolean', () => {
     const localDebug = true;
     it('should be a function', () => {
         expect(Panta.changedToClosed).to.be.a('function');
@@ -124,6 +124,16 @@ describe('changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd): bo
     });
 });
 
+describe.only('getTargetIssues(orgOrUser, repo, issueIDs, startDate, endDate, cmd): array of issueIDs', () => {
+    const localDebug = true;
+    it('should be a function', () => {
+        expect(Panta.changedToClosed).to.be.a('function');
+    });
+    it('for a single owner/repo, should return a subarray of issueIDs that pass changedToChanged for the given date range', async () => {
+        expect(await Panta.getTargetIssues(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: localDebug, uiIsOn: false} )).to.be.an('array').that.includes(57,58,59).and.not.include(50,54,56);
+    }).timeout(7000);
+});
+
 describe('createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd): number || boolean', () => {
     it('should be a function', () => {
         expect(Panta.createNewMilestoneInRepo).to.be.a('function');
@@ -144,10 +154,10 @@ describe('createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd): num
 });
 
 describe('getMilestoneIDByTitle(orgOrUser, repo, milestoneTitle, cmd): number || boolean', () => {
-    it('should be a function', () => {
+    xit('should be a function', () => {
         expect(Panta.getMilestoneIDByTitle).to.be.a('function');
     });
-    it('given a valid (i.e. exists) milestoneTitle as string, should return the ID of the milestone in orgOrUser/repo with that title', async () => {
+    xit('given a valid (i.e. exists) milestoneTitle as string, should return the ID of the milestone in orgOrUser/repo with that title', async () => {
         const milestoneTitleThatExists = '0.1.0';
         expect(await Panta.getMilestoneIDByTitle( TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneTitleThatExists, {debug: false, uiIsOn: false} )).to.equal(1);
     });
@@ -155,7 +165,7 @@ describe('getMilestoneIDByTitle(orgOrUser, repo, milestoneTitle, cmd): number ||
         const milestoneTitleThatDNE = 'nop';
         expect(await Panta.getMilestoneIDByTitle( TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, milestoneTitleThatDNE, {debug: false, uiIsOn: false} )).to.be.false;
     });
-    it('does not need to deal with duplicate titles since github repos do not allow two milestones with identical titles', () => {});
+    xit('does not need to deal with duplicate titles since github repos do not allow two milestones with identical titles', () => {});
 });
 
 describe('updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitle, cmd): number || boolean', () => {
@@ -203,18 +213,34 @@ describe('multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTit
     });
 });
 
-describe.only('multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd)', () => {
+describe('multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd)', () => {
     it('should be a function', () => {
         expect(Panta.multiReposUpdateMilestoneOfIssues).to.be.a('function');
     });
     it('given an options object with keys \"owner repo\" and values [issueID1, issueID2, etc...], should run multiUpdateMilestoneOfIssue for each key-value pair. on success, return the options, on failure, return false.', async () => {
         const options = {
-            "mwroffo testrepo": [56, 57, 58], // will 57, 58 being closed cause a problem?
+            "mwroffo testrepo": [56, 57, 58],
             "mwroffo testrepo2": [1],
             "mwroffo testrepo3": [1,2]
         }
         const newMilestoneTitle = "multiReposUpdateTestMilestone";
         const result = await Panta.multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, {debug: true, uiIsOn: false});
-        expect(result).to.equal(options);
+        expect(result).to.deep.equal(options);
+    }).timeout(8000);
+});
+
+describe('multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd)', () => {
+    it('should be a function', () => {
+        expect(Panta.multiReposUpdateMilestoneOfIssues).to.be.a('function');
+    });
+    it('given an options object with keys \"owner repo\" and values [issueID1, issueID2, etc...], should run multiUpdateMilestoneOfIssue for each key-value pair. on success, return the options, on failure, return false.', async () => {
+        const options = {
+            "mwroffo testrepo": [56, 57, 58],
+            "mwroffo testrepo2": [1],
+            "mwroffo testrepo3": [1,2]
+        }
+        const newMilestoneTitle = "multiReposUpdateTestMilestone";
+        const result = await Panta.multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, {debug: true, uiIsOn: false});
+        expect(result).to.deep.equal(options);
     });
 });
