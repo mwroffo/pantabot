@@ -15,7 +15,7 @@ let TEST_CONF = {
         LABELS: ['Story', 'workspace', 'zowe', 'Workflows']
     },
     START_DATE: '2019-07-23T10:00:00Z',
-    END_DATE: '2019-07-23T18:00:00Z'
+    END_DATE: '2019-07-23T22:00:00Z'
 };
 let issueAsXML;
 let issueAsJSON;
@@ -100,26 +100,27 @@ describe('openedByDate(orgOrUser, repo, issueID, startDate, cmd): boolean', () =
 });
 
 describe('changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd): boolean', () => {
+    const localDebug = true;
     it('should be a function', () => {
         expect(Panta.changedToClosed).to.be.a('function');
     });
     it('should return true if an issue was (1) not closed before startDate, then (2) became closed before endDate', async () => {
         const issueOpenThenClosed = 57;
         const issueDNEThenClosed = 59;
-        expect(Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenThenClosed, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: false, uiIsOn: false} )).to.be.true;
-        expect(Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueDNEThenClosed, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: false, uiIsOn: false} )).to.be.true;
+        expect(await Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenThenClosed, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: localDebug, uiIsOn: false} )).to.be.true;
+        expect(await Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueDNEThenClosed, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: localDebug, uiIsOn: false} )).to.be.true;
     });
     it('should return false if an issue was open before startDate and remained open upon endDate', async () => {
         const issueOpenThenOpen = 56;
-        expect(Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenThenOpen, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: false, uiIsOn: false} )).to.be.false;
+        expect(await Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueOpenThenOpen, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: localDebug, uiIsOn: false} )).to.be.false;
     });
     it('should return false if an issue was closed before startDate, and remained closed upon endDate', async () => {
         const issueClosedThenClosed = 50;
-        expect(Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueClosedThenClosed, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: false, uiIsOn: false} )).to.be.false;
+        expect(await Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueClosedThenClosed, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: localDebug, uiIsOn: false} )).to.be.false;
     });
     it('should return false if an issue was closed before startDate, and was reopened between startDate and endDate', async () => {
         const issueClosedThenReopened = 54;
-        expect(Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueClosedThenReopened, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: false, uiIsOn: false} )).to.be.false;
+        expect(await Panta.changedToClosed(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueClosedThenReopened, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: localDebug, uiIsOn: false} )).to.be.false;
     });
 });
 
@@ -179,8 +180,8 @@ describe('updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitle, cm
     it('does not need to update a repo\'s milestone', () => {});
 });
 
-describe.only('multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd): number || boolean', () => {
-    xit('should be a function', () => {
+describe('multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd): number || boolean', () => {
+    it('should be a function', () => {
         expect(Panta.multiUpdateMilestoneOfIssue).to.be.a('function');
     });
     it('given existing issues under same repo, should add milestone that DOES exist and assign it without creating a duplicate milestone', async () => {
@@ -188,22 +189,32 @@ describe.only('multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilesto
         const milestoneTitleThatDNE = '0.1.0';
         let issueIDsUpdated = await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDsThatExist, milestoneTitleThatDNE, {debug: true, uiIsOn: false} );
         expect(issueIDsUpdated).to.be.an('array').which.deep.equals([ 56, 57, 58 ]);
-    });
+    })
     it('given existing issues under same repo, should add milestone that DNE and assign it without residual dups', async () => {
         const issueIDsThatExist = [ 56, 57, 58 ];
         const milestoneTitleThatDNE = '0.2.0';
         let issueIDsUpdated = await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDsThatExist, milestoneTitleThatDNE, {debug: true, uiIsOn: false} );
         expect(issueIDsUpdated).to.be.an('array').which.deep.equals([ 56, 57, 58 ]);
     });
-    xit('given one or more issues that do not exist, should return false', async () => {
+    it('given one or more issues that do not exist, should return false', async () => {
         const issueIDs = [ 1000, 1001, 1002 ];
         const milestoneTitleThatDNE = 'schrodinger\'s milestone';
         expect(await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDs, milestoneTitleThatDNE, {debug: true, uiIsOn: false} )).to.be.false;
     });
 });
 
-describe('multiReposUpdateMilestoneOfIssues(ownerReposArray, issueIDs...)', () => {
+describe.only('multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd)', () => {
     it('should be a function', () => {
         expect(Panta.multiReposUpdateMilestoneOfIssues).to.be.a('function');
+    });
+    it('given an options object with keys \"owner repo\" and values [issueID1, issueID2, etc...], should run multiUpdateMilestoneOfIssue for each key-value pair. on success, return the options, on failure, return false.', async () => {
+        const options = {
+            "mwroffo testrepo": [56, 57, 58], // will 57, 58 being closed cause a problem?
+            "mwroffo testrepo2": [1],
+            "mwroffo testrepo3": [1,2]
+        }
+        const newMilestoneTitle = "multiReposUpdateTestMilestone";
+        const result = await Panta.multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, {debug: true, uiIsOn: false});
+        expect(result).to.equal(options);
     });
 });
