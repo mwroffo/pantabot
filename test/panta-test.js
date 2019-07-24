@@ -14,8 +14,8 @@ let TEST_CONF = {
         BODY: '<p>We want Zowe to be an open-source project; but keeping the open-source community updated on internal progress produces hours of tedium for project managers like <a href="https://jira.rocketsoftware.com/secure/ViewProfile.jspa?name=nrogers" class="user-hover" rel="nrogers">Nolan Rogers</a> and Scrum Masters like <a href="https://jira.rocketsoftware.com/secure/ViewProfile.jspa?name=rchowdhary" class="user-hover" rel="rchowdhary">Reet Chowdhary</a> who have to fill out GitHub issues manually. This tool (eventually a bot, perhaps) will automate the process of creating GitHub issues by fetching metadata for selected Jira issues, converting them into GitHub-friendly issues, and posting them to a corresponding repo under the Zowe organization on GitHub.</p>\r\n\r\n<p>MVP:<br/>\r\n [ ] port a selected jira issue to github with a simple command-line interface. Hopefully mapping the statuses in both Jira and github<br/>\r\n [ ] add a basic UI for usability</p>\r\n\r\n<p>Nice to have:<br/>\r\n [ ] fetch JSON directly from Jira rather than parsing XML (which requires only ordinary permissions). mroffo is waiting on RAC ticket for Jira API access</p>\r\n\r\n<p>Really nice to have:<br/>\r\n [ ] accomplish this in reverse: Issues created on a zowe github repo by open-source contributors automatically prompt <a href="https://jira.rocketsoftware.com/secure/ViewProfile.jspa?name=sgrady" class="user-hover" rel="sgrady">Sean Grady</a> for inclusion in Rocket\'s internal Jira. (likely will be a separate Issue)</p>',
         LABELS: ['Story', 'workspace', 'zowe', 'Workflows']
     },
-    START_DATE: '2019-07-23T10:00:00Z',
-    END_DATE: '2019-07-23T22:00:00Z'
+    START_DATE: '2019-07-23T14:00:00Z', // Eastern Daylight Time = this value minus 4 hours
+    END_DATE: '2019-07-24T20:00:00Z'
 };
 let issueAsXML;
 let issueAsJSON;
@@ -99,7 +99,7 @@ describe('openedByDate(orgOrUser, repo, issueID, startDate, cmd): boolean', () =
     });
 });
 
-describe.only('changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd): boolean', () => {
+describe('changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd): boolean', () => {
     const localDebug = true;
     it('should be a function', () => {
         expect(Panta.changedToClosed).to.be.a('function');
@@ -124,13 +124,33 @@ describe.only('changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd
     });
 });
 
-describe.only('getTargetIssues(orgOrUser, repo, issueIDs, startDate, endDate, cmd): array of issueIDs', () => {
-    const localDebug = true;
+describe.only('getTargetIssues(orgOrUser, repo, startDate, endDate, cmd): array of issueIDs', () => {
+    const localDebug = false;
     it('should be a function', () => {
         expect(Panta.changedToClosed).to.be.a('function');
     });
     it('for a single owner/repo, should return a subarray of issueIDs that pass changedToChanged for the given date range', async () => {
         expect(await Panta.getTargetIssues(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: localDebug, uiIsOn: false} )).to.be.an('array').that.includes(57,58,59).and.not.include(50,54,56);
+    }).timeout(7000);
+});
+
+describe.only('multiRepoGetTargetIssues(ownerRepoPairs, startDate, endDate, cmd)', () => {
+    const localDebug = false;
+    console.log(`test startDate is ${new Date(TEST_CONF.START_DATE)}, while test endDate is ${new Date(TEST_CONF.END_DATE)}`);
+    it('should be a function', () => {
+        expect(Panta.multiRepoGetTargetIssues).to.be.a('function');
+    });
+    it('given an array of \'owner repo\' pairs delimited by \' \' , return an object as such: keys are \'owner repo\' pairs, values are arrays containing issueIDs that passed getTargetIssues for that ownerrepo pair. Return such an object on success. Throw on failure.', async () => {
+        const ownerRepoPairs = ["mwroffo testrepo", "mwroffo testrepo2", "mwroffo testrepo3"];
+        const expectedReturn = {
+            "mwroffo testrepo":[57,58,59],
+            "mwroffo testrepo2":[1],
+            "mwroffo testrepo3":[1]
+        }
+        let actualReturn = await Panta.multiRepoGetTargetIssues(ownerRepoPairs, TEST_CONF.START_DATE, TEST_CONF.END_DATE, {debug: localDebug, uiIsOn: false});
+        expect(actualReturn["mwroffo testrepo"]).to.be.an('array').that.includes(57,58,59).and.not.include(50,54,56)
+        expect(actualReturn["mwroffo testrepo2"]).to.be.an('array').that.eql([1]);
+        expect(actualReturn["mwroffo testrepo3"]).to.be.an('array').that.eql([1]);
     }).timeout(7000);
 });
 

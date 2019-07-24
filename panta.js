@@ -327,7 +327,6 @@ async function changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd
  */
 async function getTargetIssues(orgOrUser, repo, startDate, endDate, cmd) {
     try {
-        // TODO
         let toReturn = [];
         const gitHub = new Github(GITHUB_CONF);
         const Issue = gitHub.getIssues(orgOrUser, repo);
@@ -359,14 +358,29 @@ async function getTargetIssues(orgOrUser, repo, startDate, endDate, cmd) {
 
 /**
  * given an array of owner/repo pairs, returns an object where keys are owner/repo pairs, and values are arrays of issues from that owner/repo that satisfied getTargetIssues.
- * @param {*} repos 
+ * @param {*} ownerRepos 
  * @param {*} startDate 
  * @param {*} endDate 
  * @param {*} cmd 
  */
-async function multiRepoGetTargetIssue(repos, startDate, endDate, cmd) {
+async function multiRepoGetTargetIssues(ownerRepos, startDate, endDate, cmd) {
     // TODO
-    return null;
+    try {
+        let toReturn = {};
+        for (let i=0; i<ownerRepos.length; i++) {
+            const ownerRepo = ownerRepos[i];
+            const [owner, repo] = ownerRepo.split(' ');
+            const issuesThatChangedToClosed = await getTargetIssues(owner, repo, startDate, endDate, cmd);
+            toReturn[ownerRepo] = issuesThatChangedToClosed;
+            if (cmd.debug) {
+                console.log(`in multiRepoGetTargetIssues, adding`, issuesThatChangedToClosed, `toReturn is now`, toReturn);
+            }
+        }
+        return toReturn;
+    } catch (err) {
+        handleErr(err, cmd.uiIsOn);
+        throw err;
+    }
 }
 
 /**
@@ -589,4 +603,4 @@ module.exports.multiUpdateMilestoneOfIssue = multiUpdateMilestoneOfIssue;
 module.exports.multiReposUpdateMilestoneOfIssues = multiReposUpdateMilestoneOfIssues;
 module.exports.changedToClosed = changedToClosed;
 module.exports.getTargetIssues = getTargetIssues; // gets target issues for single repo
-// module.exports.multiRepoGetTargetIssues = multiRepoGetTargetIssues; // runs getTargetIssues on multiple repos
+module.exports.multiRepoGetTargetIssues = multiRepoGetTargetIssues; // runs getTargetIssues on multiple repos
