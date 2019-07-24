@@ -124,7 +124,7 @@ describe('changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd): bo
     });
 });
 
-describe.only('getTargetIssues(orgOrUser, repo, startDate, endDate, cmd): array of issueIDs', () => {
+describe('getTargetIssues(orgOrUser, repo, startDate, endDate, cmd): array of issueIDs', () => {
     const localDebug = false;
     it('should be a function', () => {
         expect(Panta.changedToClosed).to.be.a('function');
@@ -134,7 +134,7 @@ describe.only('getTargetIssues(orgOrUser, repo, startDate, endDate, cmd): array 
     }).timeout(7000);
 });
 
-describe.only('multiRepoGetTargetIssues(ownerRepoPairs, startDate, endDate, cmd)', () => {
+describe('multiRepoGetTargetIssues(ownerRepoPairs, startDate, endDate, cmd)', () => {
     const localDebug = false;
     console.log(`test startDate is ${new Date(TEST_CONF.START_DATE)}, while test endDate is ${new Date(TEST_CONF.END_DATE)}`);
     it('should be a function', () => {
@@ -184,25 +184,26 @@ describe('getMilestoneIDByTitle(orgOrUser, repo, milestoneTitle, cmd): number ||
 });
 
 describe('updateMilestoneOfIssue(orgOrUser, repo, issueID, newMilestoneTitle, cmd): number || boolean', () => {
+    const localDebug = false;
     it('should be a function', () => {
         expect(Panta.updateMilestoneOfIssue).to.be.a('function');
     });
-    it('should assign a milestone that already exists, returning the milestoneID upon success', async () => {
-        const testIssueID = 56;
+    xit('DEPRECATED TEST. updateMilestoneOfIssue no longer distinguishes between milestones that already exist and DNE // should assign a milestone that already exists, returning the milestoneID upon success', async () => {
+        const testIssueID = 54;
         const correspondingMilestoneIDThatAlreadyExists = 1;
         const milestoneTitleThatAlreadyExists = '0.1.0';
-        expect(await Panta.updateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, testIssueID, milestoneTitleThatAlreadyExists, {debug: false, uiIsOn: false} ))
+        expect(await Panta.updateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, testIssueID, milestoneTitleThatAlreadyExists, {debug: localDebug, uiIsOn: false} ))
             .to.be.a('number').which.equals(correspondingMilestoneIDThatAlreadyExists);
     }).timeout(5000);
     it('if an assigned milestone does not yet exist, should create the milestone before assigning it using Panta.createNewMilestoneInRepo, then returning the new milestoneID upon success', async () => {
         const testIssueID = 56;
         const milestoneTitleThatDNE = 'This is a milestone title that tests Panta.updateMilestoneOfIssue';
-        const newMilestoneID = await Panta.updateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, testIssueID, milestoneTitleThatDNE, {debug: false, uiIsOn: false} );
+        const newMilestoneID = await Panta.updateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, testIssueID, milestoneTitleThatDNE, {debug: localDebug, uiIsOn: false} );
         expect(newMilestoneID).to.be.a('number');
         // cleanup:
-        expect(await Panta.deleteMilestoneFromRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, newMilestoneID, {debug: false, uiIsOn: false} )).to.be.a('number');
+        expect(await Panta.deleteMilestoneFromRepo(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, newMilestoneID, {debug: localDebug, uiIsOn: false} )).to.be.a('number');
     }).timeout(5000);
-    it('does not need to update a repo\'s milestone', () => {});
+    xit('does not need to update a repo\'s milestone', () => {});
 });
 
 describe('multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd): number || boolean', () => {
@@ -212,8 +213,8 @@ describe('multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTit
     });
     it('given existing issues under same repo, should add milestone that DOES exist and assign it without creating a duplicate milestone', async () => {
         const issueIDsThatExist = [ 56, 57, 58 ];
-        const milestoneTitleThatDNE = '0.1.0';
-        let issueIDsUpdated = await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDsThatExist, milestoneTitleThatDNE, {debug: localDebug, uiIsOn: false} );
+        const milestoneTitleThatDE = '0.1.0';
+        let issueIDsUpdated = await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDsThatExist, milestoneTitleThatDE, {debug: localDebug, uiIsOn: false} );
         expect(issueIDsUpdated).to.be.an('array').which.deep.equals([ 56, 57, 58 ]);
     });
     it('given existing issues under same repo, should add milestone that DNE and assign it without residual dups', async () => {
@@ -229,7 +230,7 @@ describe('multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTit
     });
 });
 
-describe.only('multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd)', () => {
+describe('multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd)', () => {
     const localDebug = false;
     it('should be a function', () => {
         expect(Panta.multiReposUpdateMilestoneOfIssues).to.be.a('function');
@@ -246,7 +247,7 @@ describe.only('multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
     }).timeout(8000);
 });
 
-describe.only('doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, ownerRepos, cmd)', () => {
+describe('doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, ownerRepos, cmd)', () => {
     const localDebug = false;
     it('should be a function', () => {
         expect(Panta.doBulkMilestoneUpdate).to.be.a('function');
@@ -259,5 +260,55 @@ describe.only('doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, owne
         expect(actualReturn["mwroffo/testrepo2"]).to.be.an('array').that.eql([1]);
         expect(actualReturn["mwroffo/testrepo3"]).to.be.an('array').that.eql([1]);
 
+    }).timeout(8000);
+});
+
+describe('removeMilestoneFromIssue(owner, repo, issueID, cmd)', () => {
+    const localDebug = false;
+    it('should be a function', () => {
+        expect(Panta.removeMilestoneFromIssue).to.be.a('function');
+    });
+    it('given owner, repo, and issueID, clear the milestone field for that issue', async () => {
+        const testIssueID = 54;
+        const milestoneTitle = '0.1.0';
+        const issueIDsUpdated = await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, [testIssueID], milestoneTitle, {debug: localDebug, uiIsOn: false});
+        const actualReturn = await Panta.removeMilestoneFromIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDsUpdated[0], {debug: localDebug, uiIsOn: false});
+        expect(actualReturn).to.equal(54);
+    });
+});
+
+describe.only('multiRemoveMilestoneFromIssue(owner, repo, issueIDs, cmd)', () => {
+    const localDebug = true;
+    it('should be a function', () => {
+        expect(Panta.multiRemoveMilestoneFromIssue).to.be.a('function');
+    });
+    it('given owner, repo, and an array of issueIDs, clear the milestone field for each issue', async () => {
+        const testIssueIDs = [54,56,60];
+        const milestoneTitle = '0.1.0';
+        const issueIDsUpdated = await Panta.multiUpdateMilestoneOfIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, testIssueIDs, milestoneTitle, {debug: localDebug, uiIsOn: false});
+        const actualReturn = await Panta.multiRemoveMilestoneFromIssue(TEST_CONF.ORG_OR_USER, TEST_CONF.REPO, issueIDsUpdated, {debug: localDebug, uiIsOn: false});
+        expect(actualReturn).be.an('array').that.includes(54,56,60);
+
+
+    }).timeout(7000);
+});
+
+describe.only('multiRepoRemoveMilestoneFromIssue(options, cmd)', () => {
+    const localDebug = true;
+    it('should be a function', () => {
+        expect(Panta.multiRepoRemoveMilestoneFromIssue).to.be.a('function');
+    });
+    it('given owner, repo, and an array of issueIDs, clear the milestone field for each issue', async () => {
+        const options = {
+            "mwroffo/testrepo": [56, 57, 58],
+            "mwroffo/testrepo2": [1],
+            "mwroffo/testrepo3": [1,2]
+        }
+        const newMilestoneTitle = "multiReposUpdateTestMilestone";
+        const result = await Panta.multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, {debug: localDebug, uiIsOn: false});
+        expect(result).to.eql(options);
+
+        const removalResult = await Panta.multiRepoRemoveMilestoneFromIssue(options, {debug: localDebug, uiIsOn: false});
+        expect(removalResult).to.eql(options);
     }).timeout(8000);
 });

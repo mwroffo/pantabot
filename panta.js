@@ -406,6 +406,75 @@ async function updateMilestoneOfIssue(orgOrUser, repo, issueID, milestoneID, cmd
     }
 }
 
+async function removeMilestoneFromIssue(orgOrUser, repo, issueID, cmd) {
+    try {
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        const getResponse = await Issue.getIssue(issueID);
+        const oldMilestoneNumber = getResponse.data.milestone.number;
+        if (cmd.debug) console.log(getResponse.data)
+        const editResponse = await Issue.editIssue(issueID, {milestone: null} );
+        
+        if (cmd.debug) console.log(`in updateMilestoneOfIssue(${orgOrUser}/${repo}/${issueID}) ${editResponse.status} successfully removed milestone ${oldMilestoneNumber} of issue ${issueID} on ${orgOrUser}/${repo}`)
+        return issueID;
+    } catch (err) {
+        console.log(`in updateMilestoneOfIssue(${orgOrUser}, ${repo}, ${issueID}): throwing error ${err}` );
+        throw err;
+    }
+}
+
+/**
+ * given an orgOrUser and repo and array of issueIDs, set all milestones to null. return array of IDs of edited issues.
+ * @param {*} orgOrUser 
+ * @param {*} repo 
+ * @param {*} issueIDs 
+ * @param {*} cmd 
+ */
+async function multiRemoveMilestoneFromIssue(orgOrUser, repo, issueIDs, cmd) {
+    try {
+        let toReturn = [];
+        const gitHub = new Github(GITHUB_CONF);
+        const Issue = gitHub.getIssues(orgOrUser, repo);
+        for (let i=0; i<issueIDs.length; i++) {
+            const editResponse = await Issue.editIssue(issueIDs[i], {milestone: null} );
+            if (cmd.debug) console.log(`in multiRemoveMilestoneFromIssue(${orgOrUser}, ${repo}, ${issueIDs}): issueID is`, editResponse.data.number);
+            const issueID = editResponse.data.number;
+            toReturn.push(issueID);
+        }
+        return toReturn;
+    } catch (err) {
+        console.log(`in multiRemoveMilestoneFromIssue(${orgOrUser}, ${repo}, ${issueIDs}): throwing error ${err}` );
+        throw err;
+    }
+}
+
+/**
+ * takes options with owner/repo keys and array-of-issueIDs keys and makes milestones null for each issue in each owner/repo.
+ * @param {*} options 
+ * @param {*} cmd 
+ */
+async function multiRepoRemoveMilestoneFromIssue(options, cmd) {
+    try {
+        let toReturn = {};
+        const ownerRepos = Object.keys(options);
+        const issueIDsClusters = Object.values(options);
+        if (cmd.debug) console.log(`in multiRepoRemoveMilestoneFromIssue, ownerRepos is`, ownerRepos, `and issueIDsClusters is`, issueIDsClusters);
+
+        for (let i=0; i<ownerRepos.length; i++) {
+            const ownerRepo = ownerRepos[i];
+            const [owner, repo] = ownerRepo.split('/');
+            const issueIDs = issueIDsClusters[i];
+            const issueIDsWithRemovedMilestone = await multiRemoveMilestoneFromIssue(owner, repo, issueIDs, cmd);
+            toReturn[ownerRepo] = issueIDsWithRemovedMilestone;
+            if (cmd.debug) console.log(`in multiRepoRemoveMilestoneFromIssue, adding ${issueIDsWithRemovedMilestone}, toReturn is now`, toReturn);
+        }
+        return toReturn;
+    } catch (err) {
+        console.log(`in multiRemoveMilestoneFromIssue(${orgOrUser}, ${repo}, ${issueIDs}): throwing error ${err}` );
+        throw err;
+    }
+}
+
 /**
  * DEPRECATED for bad OOP. Does not adhere to SRP. In other words this method is legacy but not legendary :(
  * queries the issue with the given issueID under orgOrUser/repo and edits its milestone to be `newMilestoneTitle` AND creates a new milestone in the repo if one with title `newMilestoneTitle` DNE. returns true for normal http responses and false for 300 or 400s.
@@ -503,7 +572,6 @@ async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
 }
 
 async function doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, ownerRepos, cmd) {
-    // TODO
     try {
         const options = await multiRepoGetTargetIssues(ownerRepos, startDate, endDate, cmd);
         const updatesDone = await multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd);
@@ -611,3 +679,6 @@ module.exports.changedToClosed = changedToClosed;
 module.exports.getTargetIssues = getTargetIssues; // gets target issues for single repo
 module.exports.multiRepoGetTargetIssues = multiRepoGetTargetIssues; // runs getTargetIssues on multiple repos
 module.exports.doBulkMilestoneUpdate = doBulkMilestoneUpdate;
+module.exports.removeMilestoneFromIssue = removeMilestoneFromIssue;
+module.exports.multiRemoveMilestoneFromIssue = multiRemoveMilestoneFromIssue;
+module.exports.multiRepoRemoveMilestoneFromIssue = multiRepoRemoveMilestoneFromIssue;
