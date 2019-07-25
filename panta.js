@@ -10,6 +10,7 @@ const J2G_USERNAME_MAP = require('./j2g-username-map');
 
 const GITHUB_CONF = require('./config.js').GITHUB_CONF;
 const JIRA_CONF = require('./config.js').JIRA_CONF;
+const OWNER_REPOS = require('./config.js').OWNER_REPOS;
 const pkg = require('./package.json');
 
 function setupCLI() {
@@ -76,16 +77,10 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
     else return undefined
 }
 
-async function convertIssue(issueID) {
-    const jiraIssueXML = await fetchXML(issueID);
-    const githubIssueJSON = convertXMLIssue2GithubIssue(jiraIssueXML);
-}
-
 /* 
 * Takes a jira.rocketsoftware.com issue id and returns the issue in xml form
 * @param {string} [issueID] the issue's id, for example MVD-3017
 */
-
 async function fetchXML(issueID, cmd) {
     // EDIT THIS LINE to reflect your Jira instance's XML link
     const url = `https://jira.rocketsoftware.com/si/jira.issueviews:issue-xml/${issueID}/${issueID}.xml`;
