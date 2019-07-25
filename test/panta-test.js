@@ -1,8 +1,9 @@
 'use strict';
 
-const fs = require('fs');
+const fs = require('fs-extra');
 const expect = require('chai').expect;
 const Panta = require('../panta.js');
+const InstallConfigUI = require('../INSTALL-CONFIG/install-config-ui')
 const testIssueID = 'MVD-3048';
 const testXML = fs.readFileSync(`${__dirname}/jira-issue.xml`, {encoding: "UTF-8"});
 let TEST_CONF = {
@@ -277,7 +278,7 @@ describe('removeMilestoneFromIssue(owner, repo, issueID, cmd)', () => {
     });
 });
 
-describe.only('multiRemoveMilestoneFromIssue(owner, repo, issueIDs, cmd)', () => {
+describe('multiRemoveMilestoneFromIssue(owner, repo, issueIDs, cmd)', () => {
     const localDebug = true;
     it('should be a function', () => {
         expect(Panta.multiRemoveMilestoneFromIssue).to.be.a('function');
@@ -293,7 +294,7 @@ describe.only('multiRemoveMilestoneFromIssue(owner, repo, issueIDs, cmd)', () =>
     }).timeout(7000);
 });
 
-describe.only('multiRepoRemoveMilestoneFromIssue(options, cmd)', () => {
+describe('multiRepoRemoveMilestoneFromIssue(options, cmd)', () => {
     const localDebug = true;
     it('should be a function', () => {
         expect(Panta.multiRepoRemoveMilestoneFromIssue).to.be.a('function');
@@ -311,4 +312,18 @@ describe.only('multiRepoRemoveMilestoneFromIssue(options, cmd)', () => {
         const removalResult = await Panta.multiRepoRemoveMilestoneFromIssue(options, {debug: localDebug, uiIsOn: false});
         expect(removalResult).to.eql(options);
     }).timeout(8000);
+});
+
+describe.only('editStringExport(pathToTargetFile, fieldToExport, ownerRepos, cmd)', () => {
+    const localDebug = true;
+    it('should be a function', () => {
+        expect(editStringExport).to.be.a('function');
+    });
+    it('given a path to a target .js tile, edits `module.exports[fieldToExport] = \"stringToExport\";` to the end of the target file.', async () => {
+        const pathToTargetFile = 'config.js';
+        const fieldToExport = 'OWNER_REPOS';
+        const ownerRepos = "mwroffo/testrepo mwroffo/testrepo2 mwroffo/testrepo3"
+
+        let actualContents = await InstallConfigUI.editStringExport(pathToTargetFile, fieldToExport, ownerRepos, {debug: localDebug, uiIsOn: false} );
+    })
 });

@@ -1,5 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog  } = require('electron');
 const keytar = require('keytar');
+const Panta = require('./panta')
+console.log(Panta);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -81,3 +83,28 @@ function handleErr(err) {
     });
     throw err;
 }
+/**
+ * given a path to a target .js tile, edits `module.exports[fieldToExport] = \"stringToExport\";` to the end of the target file.
+ * @param {*} pathToTargetFile 
+ * @param {*} fieldToExport 
+ * @param {*} stringToExport 
+ * @param {*} cmd 
+ */
+async function editStringExport(pathToTargetFile, fieldToExport, stringToExport, cmd) {
+  try {
+      if (cmd.debug) console.log(`in editStringExport, calling readFile(${pathToTargetFile})`);
+      let contents = await fs.readFile(pathToTargetFile, 'utf8');
+      if (cmd.debug) console.log(`in editStringExport, after readFile, contents contains\n`, contents);
+      const regexp = new RegExp(`module\.exports\.${fieldToExport} = .*;`, "g")
+
+      contents = contents.replace(regexp, `module.exports.${fieldToExport} = \"${stringToExport}\";`);
+
+      await fs.writeFile(pathToTargetFile, contents, {encoding: 'utf8', flag:'w'} );
+      if (cmd.debug) console.log(`in writeFile, used regexp ${regexp} and wrote ${contents} in utf8 to ${pathToTargetFile}`);
+      return contents;
+  } catch (err) {
+      console.log(`in editStringExport(${pathToTargetFile}, ${fieldToExport}, ${stringToExport}): throwing ${err}`);
+      throw err;
+  }
+}
+module.exports.editStringExport = editStringExport;
