@@ -28,6 +28,7 @@
   "dependencies": {
     "cheerio": "0.22.0",
     "commander": "^2.20.0",
+    "fs-extra": "^8.1.0",
     "github-api": "^3.2.2",
     "keytar": "^4.11.0",
     "request": "^2.88.0",
