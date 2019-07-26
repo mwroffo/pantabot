@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <h1>Panta Authentication Wizard</h1>
+    <h1>Panta Configuration Wizard</h1>
 
     <p>Enter username/password pairs:</p>
     
@@ -22,7 +22,10 @@
       Github password:<br>
       <input type="password" name="github-password" id="github-password" value="Oaper9133"><br>
 
-      <input type="submit" value="Register this authentication with panta">
+      owner/repo pairs, delimited by spaces (e.g. "myUsername/myRepo someOrganization/someRepo"):<br>
+      <input type="text" name="ownerRepos" id="ownerRepos" value="mwroffo/testrepo mwroffo/testrepo2 mwroffo/testrepo3"><br>
+
+      <input type="submit" value="Register this configuration with panta">
   </form>
 
   <script src='install-config-renderFile.js'></script>

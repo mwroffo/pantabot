@@ -1,7 +1,6 @@
-config.js
-mult-j2g-demo.wrf
-pantabot-win32-x64
-j2g-username-map.json
-install-config-win32-x64
 node_modules
-node_modules/*
+pantabot-win32-x64
+install-config-win32-x64
+config.js
+milestones.json
+mult-j2g-demo.wrf

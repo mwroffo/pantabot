@@ -1,7 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog  } = require('electron');
 const keytar = require('keytar');
-const Panta = require('./panta')
-console.log(Panta);
+const fs = require('fs-extra')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -57,13 +56,17 @@ function buildUI() {
         }
     });
 
-    ipcMain.on('register-auth', async function registerPasswords(
-        event, jiraUsername, jiraPassword, githubUsername, githubPassword) {
+    ipcMain.on('register-auth', async function registerConfig(
+        event, jiraUsername, jiraPassword, githubUsername, githubPassword, ownerRepos) {
           try {
             await keytar.setPassword('jira', jiraUsername, jiraPassword);
             await keytar.setPassword('github', githubUsername, githubPassword);
-            handlePrint(`Successfully registered passwords for ${jiraUsername}@jira and ${githubUsername}@github.`);
-          } catch (err) { handleErr(err); }
+            await editStringExport('config.js', 'OWNER_REPOS', ownerRepos, {debug:false, uiIsOn:true} );
+            handlePrint(`Successfully registered passwords for ${jiraUsername}@jira and ${githubUsername}@github, and target repos ${ownerRepos}`);
+          } catch (err) {
+            handlePrint(`in registerConfig, throwing ${err}`)  
+            handleErr(err);
+          }
     });
 }
 buildUI();

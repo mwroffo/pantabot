@@ -12,7 +12,8 @@
     "full-deploy": "node node_modules/electron-packager/bin/electron-packager.js . --overwrite && node node_modules/electron-packager/bin/electron-packager.js INSTALL-CONFIG --no-prune --overwrite",
     "deploy-installer": "node node_modules/electron-packager/bin/electron-packager.js INSTALL-CONFIG --no-prune --overwrite",
     "build-for-ui": "rm -rf node_modules & npm i & node_modules\\.bin\\electron-rebuild",
-    "build-for-cli": "npm rebuild"
+    "build-for-cli": "npm rebuild",
+    "fix-gitignore":"git rm -r --cached . & git add . & git commit -m \"fixed untracked files\""
   },
   "repository": {
     "type": "git",
