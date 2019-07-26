@@ -1,11 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const Panta = require('./panta.js');
-const path = require ('path');
-const fs = require('fs');
-const os = require('os');
-const keytar = require('keytar');
-let GITHUB_AUTH = require('./config.js').GITHUB_AUTH;
-let JIRA_AUTH = require('./config.js').JIRA_AUTH;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -14,8 +8,8 @@ let window;
 function createWindow () {
   // Create the browser window.
   window = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1000,
+    height: 800,
     webPreferences: {
       nodeIntegration: true
     },
