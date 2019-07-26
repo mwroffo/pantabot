@@ -18,5 +18,5 @@ function sendBulkUpdateForm(event) {
 }
 (function renderOwnerRepos() {
     const currentContents = document.getElementById("ownerRepos").innerHTML;
-    document.getElementById("ownerRepos").innerHTML = `${currentContents}: ${OWNER_REPOS}`;
+    document.getElementById("ownerRepos").innerHTML = `${currentContents}${OWNER_REPOS}`;
 })();
