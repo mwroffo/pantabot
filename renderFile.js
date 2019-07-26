@@ -1,3 +1,4 @@
+const OWNER_REPOS = require('./config.js').OWNER_REPOS;
 const ipcRenderer = require('electron').ipcRenderer;
 
 function sendForm(event) {
@@ -15,3 +16,7 @@ function sendBulkUpdateForm(event) {
     const newMilestoneTitle = document.getElementById("newMilestoneTitle").value;
     ipcRenderer.send('bulkUpdateFormSubmission', startDate, endDate, newMilestoneTitle, {debug: true, uiIsOn: true} );
 }
+(function renderOwnerRepos() {
+    const currentContents = document.getElementById("ownerRepos").innerHTML;
+    document.getElementById("ownerRepos").innerHTML = `${currentContents}: ${OWNER_REPOS}`;
+})();

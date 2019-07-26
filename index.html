@@ -27,7 +27,9 @@
     </form>
 
     <h2>Bulk Milestone-Updater</h2>
-    <p>Setup: use INSTALL-CONFIG to enter target repositories</p>
+    <p>Currently querying these repos:</p>
+    <div id="ownerRepos"></div>
+    <p>Use INSTALL-CONFIG to edit target repositories</p>
     <form name="ipcBulkUpdateForm" onSubmit="JavaScript:sendBulkUpdateForm(event)">
       <label>Start Date</label><input type="datetime-local" name="startDate" id="startDate" value="2019-07-23T10:00:00">
       <label>End Date</label><input type="datetime-local" name="endDate" id="endDate" value="2019-07-24T16:00:00">
