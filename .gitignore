@@ -4,3 +4,7 @@ install-config-win32-x64
 config.js
 milestones.json
 mult-j2g-demo.wrf
+create-meta.json
+mroffo-jira-permissions.json
+test-make-subtask.json
+update-assignee.json
