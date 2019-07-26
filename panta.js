@@ -566,9 +566,16 @@ async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
     }
 }
 
-async function doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, ownerRepos, cmd) {
+async function doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, cmd) {
     try {
-        const options = await multiRepoGetTargetIssues(ownerRepos, startDate, endDate, cmd);
+        const options = await multiRepoGetTargetIssues(OWNER_REPOS.split(' '), startDate, endDate, cmd);
+        let ownerRepos = Object.keys(options);
+        let issueIDsClusters = Object.values(options);
+        let optionsString = `Updating milestone to ${newMilestoneTitle} on\n\n${ownerRepos[0]}: issues ${issueIDsClusters[0]}`
+        for (let i=1;i<ownerRepos.length; i++) {
+            optionsString = optionsString + `\n${ownerRepos[i]}: issues ${issueIDsClusters[i]}`;
+        }
+        handlePrint(optionsString, true);
         const updatesDone = await multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd);
         if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues: successfully submitted milestone ${newMilestoneTitle} to`, updatesDone);
         return updatesDone;
@@ -677,3 +684,5 @@ module.exports.doBulkMilestoneUpdate = doBulkMilestoneUpdate;
 module.exports.removeMilestoneFromIssue = removeMilestoneFromIssue;
 module.exports.multiRemoveMilestoneFromIssue = multiRemoveMilestoneFromIssue;
 module.exports.multiRepoRemoveMilestoneFromIssue = multiRepoRemoveMilestoneFromIssue;
+module.exports.handleErr = handleErr;
+module.exports.handlePrint = handlePrint;

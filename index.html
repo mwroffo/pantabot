@@ -7,6 +7,7 @@
   </head>
   <body>
     <h1>Panta</h1>
+    <h2>Jira-to-GitHub issue porter</h2>
     <p>SETUP: Before using panta, configure your authentication by double-clicking INSTALL-CONFIG inside the INSTALL-CONFIG folder.</p>
     <p>Troubleshooting: if issue-posts say "error 404", confirm that your username/password were correctly registered with INSTALL-CONFIG. Submitting with the issue-codes field empty will cause error 400.</p>
     
@@ -23,7 +24,17 @@
       <input type="text" name="jira-issue-codes" id="jira-issue-codes" value="MVD-3048 MVD-3060"><br>
       <br>
       <input type="submit" value="Post Jira issues to Github">
-  </form>
+    </form>
+
+    <h2>Bulk Milestone-Updater</h2>
+    <p>Setup: use INSTALL-CONFIG to enter target repositories</p>
+    <form name="ipcBulkUpdateForm" onSubmit="JavaScript:sendBulkUpdateForm(event)">
+      <label>Start Date</label><input type="datetime-local" name="startDate" id="startDate" value="2019-07-23T10:00:00">
+      <label>End Date</label><input type="datetime-local" name="endDate" id="endDate" value="2019-07-24T16:00:00">
+      <br>
+      <label>New Milestone: </label> <input type="text" name="newMilestoneTitle" id="newMilestoneTitle" value="UI Test Milestone">
+      <input type="submit" value="Update Milestone for issues in date range">
+    </form>
 
   <script src='renderFile.js'></script>
 
