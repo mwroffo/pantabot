@@ -285,19 +285,22 @@ async function changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd
     try {
         let notClosedBeforeStart = false;
         let closedBeforeEnd = false;
-        startDate = new Date(startDate);
-        endDate = new Date(endDate);
 
         const gitHub = new Github(GITHUB_CONF);
         const Issue = gitHub.getIssues(orgOrUser, repo);
         const response = await Issue.getIssue(issueID);
         const issue = response.data;
+
+        // convert to ms since unix epoch
+        startDate = new Date(startDate).getTime();
+        endDate = new Date(endDate).getTime();
+
         // careful: for open issues, closedAt is Wed Dec 31 1969 19:00:00 GMT-0500
         if (null !== issue.closed_at) {
-            const closedAt = new Date(issue.closed_at);
+            const closedAt = new Date(issue.closed_at).getTime();
             closedBeforeEnd = closedAt < endDate;
             notClosedBeforeStart = !(closedAt < startDate);
-        }    
+        }
         if (cmd.debug) {
             if (null === issue.closed_at) {
                 console.log(`in changedToClosed(${orgOrUser}, ${repo}, ${issueID}), issue is not yet closed. returning false.`);
@@ -325,6 +328,7 @@ async function getTargetIssues(orgOrUser, repo, startDate, endDate, cmd) {
         let toReturn = [];
         const gitHub = new Github(GITHUB_CONF);
         const Issue = gitHub.getIssues(orgOrUser, repo);
+        if (cmd.debug) console.log(`in getTargetIssues, before listIssues, startDate is`, startDate, `endDate is`, endDate);
         const options = {
             "state":"all",
             "since":startDate
@@ -346,8 +350,8 @@ async function getTargetIssues(orgOrUser, repo, startDate, endDate, cmd) {
         return toReturn;
     } catch (err) {
         // todo distinguish 404, 301, 410?
-        if (cmd.debug) console.log(`in getTargetIssues, returning false instead of throwing ${err}`);
-        return false;
+        if (cmd.debug) console.log(`in getTargetIssues, throwing ${err}`);
+        handleErr(err, cmd.uiIsOn);
     }
 }
 
@@ -569,19 +573,12 @@ async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
 async function doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, cmd) {
     try {
         const options = await multiRepoGetTargetIssues(OWNER_REPOS.split(' '), startDate, endDate, cmd);
-        let ownerRepos = Object.keys(options);
-        let issueIDsClusters = Object.values(options);
-        let optionsString = `Updating milestone to ${newMilestoneTitle} on\n\n${ownerRepos[0]}: issues ${issueIDsClusters[0]}`
-        for (let i=1;i<ownerRepos.length; i++) {
-            optionsString = optionsString + `\n${ownerRepos[i]}: issues ${issueIDsClusters[i]}`;
-        }
-        handlePrint(optionsString, true);
         const updatesDone = await multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd);
-        if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues: successfully submitted milestone ${newMilestoneTitle} to`, updatesDone);
+        handlePrint(`in multiReposUpdateMilestoneOfIssues: successfully updated milestones to ${newMilestoneTitle}`, cmd.uiIsOn);
         return updatesDone;
     } catch (err) {
-        if (cmd.debug) console.log(`in doBulkMilestoneUpdate(${newMilestoneTitle}, ${startDate}, ${endDate}, ${ownerRepos}): catching error ${err} and throwing` );
-        throw err;
+        handlePrint(`in doBulkMilestoneUpdate(${newMilestoneTitle}, ${startDate}, ${endDate}, ${OWNER_REPOS}): catching error ${err} and throwing`);
+        handleErr(err, cmd.uiIsOn);
     }
 }
 
