@@ -670,6 +670,24 @@ async function deleteMilestoneFromRepo(orgOrUser, repo, milestoneID, cmd) {
         throw err;
     }
 }
+function getTargetIssuesString(options, cmd) {
+    let toReturn = '';
+    const ownerRepos = Object.keys(options)
+    const issueObjArrays = Object.values(options);
+    if (cmd.debug) console.log(`in getTargetIssuesString, options parameter is`, options, `ownerRepos is`, ownerRepos, `issueObjArrays is`, issueObjArrays);
+    
+    for (let i=0; i<ownerRepos.length; i++) {
+        toReturn = toReturn + `<strong>${ownerRepos[i]}</strong>:<br>`;
+        const issues = issueObjArrays[i];
+        for (let j=0; j<issues.length; j++) {
+            const issue = issues[j];
+            toReturn += ` ${issue.id} \'${issue.title}\'<br>`;
+            if (cmd.debug) console.log(`in getTargetIssuesString inner loop, ownerRepo is ${ownerRepos[i]} issue.id is`, issue.id, `toReturn is`, toReturn)
+        }
+        toReturn += '<br>';
+    }
+    return toReturn;
+}
 
 // if this module is imported somewhere else, do not run CLI setup. take care that this does not cause problems with test-suites.
 if (!module.parent) {
@@ -697,3 +715,4 @@ module.exports.multiRemoveMilestoneFromIssue = multiRemoveMilestoneFromIssue;
 module.exports.multiRepoRemoveMilestoneFromIssue = multiRepoRemoveMilestoneFromIssue;
 module.exports.handleErr = handleErr;
 module.exports.handlePrint = handlePrint;
+module.exports.getTargetIssuesString = getTargetIssuesString;
