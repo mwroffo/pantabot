@@ -17,16 +17,15 @@ async function promptTargetIssues(event) {
     const options = await Panta.multiRepoGetTargetIssues(OWNER_REPOS.split(' '), START_DATE, END_DATE, {debug: true, uiIsOn: true});
     const optionsString = Panta.getTargetIssuesString(options, {debug: true, uiIsOn: true});
     console.log(`optionsString is`, optionsString);
-    // document.getElementById("targetIssues").innerHTML = optionsString;
 
     const ownerRepos = OWNER_REPOS.split(' ');
     const issueObjArrays = Object.values(options);
     
-    const queryTargetsContainer = document.getElementById("targetIssues");
+    const queryTargetsContainer = document.getElementById("queryTargetsContainer");
     if (queryTargetsContainer) console.log(`in renderQueryTargetsContainer queryTargetsContainer is`, queryTargetsContainer);
     for (let i=0; i<ownerRepos.length; i++) {
         let label = document.createElement("label");
-        label.name = `ownerRepos${i}`;
+        label.for = `${ownerRepos[i]}`;
         label.innerHTML = `<strong>${ownerRepos[i]}:</strong>`;
         queryTargetsContainer.appendChild(label);
         queryTargetsContainer.appendChild(document.createElement("br"));
@@ -34,7 +33,8 @@ async function promptTargetIssues(event) {
         for (let j=0; j<issues.length; j++) {
             const issue = issues[j];
             let issueLabel = document.createElement("label");
-            issueLabel.innerHTML = ` ${issue.id} ${issue.title}`;
+            issueLabel.for = `${issue.id}`;
+            issueLabel.innerHTML = ` ${issue.id} \'${issue.title}\'`;
             queryTargetsContainer.appendChild(issueLabel);
             queryTargetsContainer.appendChild(document.createElement("br"));
         }
@@ -48,9 +48,7 @@ function sendBulkUpdateForm(event) {
     // todo remove duplicated getTargetIssues behavior from bulkUpdate handler
     ipcRenderer.send('bulkUpdateFormSubmission', START_DATE, END_DATE, newMilestoneTitle, {debug: true, uiIsOn: true} );
 }
-(async function renderQueryTargetsContainer() {
+(function renderQueryTargetsContainer() {
     const currentContents = document.getElementById("ownerRepos").innerHTML;
     document.getElementById("ownerRepos").innerHTML = `${currentContents}${OWNER_REPOS}`
-    
-    
 })();
