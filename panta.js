@@ -339,9 +339,10 @@ async function getTargetIssues(orgOrUser, repo, startDate, endDate, cmd) {
 
         for (let i=0; i<issues.length; i++) {
             const issueID = issues[i].number;
+            const title = issues[i].title;
             let issueChangedToClosed = await changedToClosed(orgOrUser, repo, issueID, startDate, endDate, cmd);
             if (issueChangedToClosed) {
-                toReturn.push(issueID);
+                toReturn.push({"id":issueID,"title":title});
             }
             if (cmd.debug) {
                 console.log(`in getTargetIssues(${orgOrUser}, ${repo}), changedToClosed(${issueID}) is ${issueChangedToClosed}, toReturn is`, toReturn);
@@ -537,11 +538,24 @@ async function multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilesto
 
 /**
  * takes options object of format
- * const options = {
- *  "mwroffo testrepo": [56,57,58],
- *  "mwroffo testrepo2": [1],
- *  "mwroffo testrepo3": [1,2]
- * } and then runs multiUpdateMilestoneOfIssue on each key-value pair, returning an object identical to `options` upon success, or on failure, throw err.
+ * const optionsExample = {
+        "mwroffo/testrepo":[
+            {
+                "id":1,
+                "title":"my title"
+            }
+        ],
+        "mwroffo/testrepo2":[
+            {
+                "id":57,
+                "title":"some other title"
+            },
+            {
+                "id:58",
+                "title":"some third title"
+            }
+        ]
+    } and then runs multiUpdateMilestoneOfIssue for each owner/repo+id, returning an object identical to `options` upon success, or on failure, throw err.
  * @param {*} options 
  * @param {*} newMilestoneTitle 
  * @param {*} cmd 
@@ -551,13 +565,13 @@ async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
     if (!(typeof newMilestoneTitle === 'string')) throw new Error(`newMilestoneTitle must be a string, but is ${typeof newMilestoneTitle}`)
     try {
         const ownerRepos = Object.keys(options);
-        const issueIDsClusters = Object.values(options);
+        const issueObjsArrays = Object.values(options);
         let toReturn = {};
 
         for (let i=0; i<ownerRepos.length; i++) {
             const ownerRepo = ownerRepos[i];
             const [orgOrUser, repo] = ownerRepo.split('/');
-            const issueIDs = issueIDsClusters[i];
+            const issueIDs = issueObjsArrays[i].map(issue => issue.id)
             const issuesUpdated = await multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd);
             toReturn[ownerRepo] = issuesUpdated;
             if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues: successfully updated ${orgOrUser}/${repo}/${issueIDs} with ${newMilestoneTitle}`);

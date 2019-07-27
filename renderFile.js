@@ -31,10 +31,11 @@ function sendBulkUpdateForm(event) {
     const startDate = document.getElementById("startDate").value; // EST
     const endDate = document.getElementById("endDate").value; // EST
     const newMilestoneTitle = document.getElementById("newMilestoneTitle").value;
+    
     // todo remove duplicated getTargetIssues behavior from bulkUpdate handler
     ipcRenderer.send('bulkUpdateFormSubmission', startDate, endDate, newMilestoneTitle, {debug: true, uiIsOn: true} );
 }
-(function renderOwnerRepos() {
+(function renderQueryTargetsContainer() {
     const currentContents = document.getElementById("ownerRepos").innerHTML;
     document.getElementById("ownerRepos").innerHTML = `${currentContents}${OWNER_REPOS}`;
 })();

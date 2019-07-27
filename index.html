@@ -35,9 +35,11 @@
       <label>End Date</label><input type="datetime-local" name="endDate" id="endDate" value="2019-07-24T16:00:00">
         <br><input type="submit" value="Query issues in date range (takes 2-3 seconds)">
     </form>
-
+<div id="queryTargetsContainer">
+  
+</div>
     <p id="targetIssues" style="height:140px;width:500px;border:1px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;"></p>
-    
+
     <form name="ipcBulkUpdateForm" onSubmit="JavaScript:sendBulkUpdateForm(event)">
       <label>New Milestone: </label> <input type="text" name="newMilestoneTitle" id="newMilestoneTitle" value="UI Test Milestone">
       <input type="submit" value="Update Milestone for queried issues">
