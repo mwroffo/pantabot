@@ -358,6 +358,7 @@ async function getTargetIssues(orgOrUser, repo, startDate, endDate, cmd) {
 
 /**
  * given an array of owner/repo pairs, returns an object where keys are owner/repo pairs, and values are arrays of issues from that owner/repo that satisfied getTargetIssues.
+ * part of the queryTargetIssues callchain, which uses time parameters to automatically query issues for a milestone update.
  * @param {*} ownerRepos 
  * @param {*} startDate 
  * @param {*} endDate 
@@ -565,13 +566,13 @@ async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
     if (!(typeof newMilestoneTitle === 'string')) throw new Error(`newMilestoneTitle must be a string, but is ${typeof newMilestoneTitle}`)
     try {
         const ownerRepos = Object.keys(options);
-        const issueObjsArrays = Object.values(options);
+        const issueIDArrays = Object.values(options);
         let toReturn = {};
 
         for (let i=0; i<ownerRepos.length; i++) {
             const ownerRepo = ownerRepos[i];
             const [orgOrUser, repo] = ownerRepo.split('/');
-            const issueIDs = issueObjsArrays[i].map(issue => issue.id)
+            const issueIDs = issueIDArrays[i];
             const issuesUpdated = await multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd);
             toReturn[ownerRepo] = issuesUpdated;
             if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues: successfully updated ${orgOrUser}/${repo}/${issueIDs} with ${newMilestoneTitle}`);
@@ -584,9 +585,8 @@ async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
     }
 }
 
-async function doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, cmd) {
+async function doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, options, cmd) {
     try {
-        const options = await multiRepoGetTargetIssues(OWNER_REPOS.split(' '), startDate, endDate, cmd);
         const updatesDone = await multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd);
         handlePrint(`in multiReposUpdateMilestoneOfIssues: successfully updated milestones to ${newMilestoneTitle}`, cmd.uiIsOn);
         return updatesDone;

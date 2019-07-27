@@ -24,19 +24,17 @@ async function promptTargetIssues(event) {
     const queryTargetsContainer = document.getElementById("queryTargetsContainer");
     if (queryTargetsContainer) console.log(`in renderQueryTargetsContainer queryTargetsContainer is`, queryTargetsContainer);
     for (let i=0; i<ownerRepos.length; i++) {
-        let label = document.createElement("label");
-        label.for = `${ownerRepos[i]}`;
-        label.innerHTML = `<strong>${ownerRepos[i]}:</strong>`;
+        let label = document.createElement("ul");
+        label.name = `${ownerRepos[i]}`;
+        label.innerHTML = `${ownerRepos[i]}`;
         queryTargetsContainer.appendChild(label);
-        queryTargetsContainer.appendChild(document.createElement("br"));
         const issues = issueObjArrays[i];
         for (let j=0; j<issues.length; j++) {
             const issue = issues[j];
-            let issueLabel = document.createElement("label");
-            issueLabel.for = `${issue.id}`;
+            let issueLabel = document.createElement("li");
+            issueLabel.id = `${issue.id}`;
             issueLabel.innerHTML = ` ${issue.id} \'${issue.title}\'`;
-            queryTargetsContainer.appendChild(issueLabel);
-            queryTargetsContainer.appendChild(document.createElement("br"));
+            label.appendChild(issueLabel);
         }
     }
 }
@@ -44,11 +42,29 @@ async function promptTargetIssues(event) {
 function sendBulkUpdateForm(event) {
     event.preventDefault();
     const newMilestoneTitle = document.getElementById("newMilestoneTitle").value;
+
+    const options = getTargetIssuesFromForm();
     
     // todo remove duplicated getTargetIssues behavior from bulkUpdate handler
-    ipcRenderer.send('bulkUpdateFormSubmission', START_DATE, END_DATE, newMilestoneTitle, {debug: true, uiIsOn: true} );
+    ipcRenderer.send('bulkUpdateFormSubmission', START_DATE, END_DATE, newMilestoneTitle, options, {debug: true, uiIsOn: true} );
 }
 (function renderQueryTargetsContainer() {
     const currentContents = document.getElementById("ownerRepos").innerHTML;
     document.getElementById("ownerRepos").innerHTML = `${currentContents}${OWNER_REPOS}`
 })();
+
+function getTargetIssuesFromForm() {
+    let toReturn = {};
+    const queryTargetsContainer = document.getElementById("queryTargetsContainer");
+    const ownerRepoHTMLCollection = queryTargetsContainer.children;
+    const issues = ownerRepoHTMLCollection[0].children;
+    console.log(`in getTargetIssuesFromForm, ownerRepoHTMLCollection are`, ownerRepoHTMLCollection);
+    for (let i=0; i<ownerRepoHTMLCollection.length; i++) {
+        const issues = ownerRepoHTMLCollection[i].children;
+        toReturn[ownerRepoHTMLCollection[i].name] = [];
+        for (let j=0; j<issues.length; j++) {
+            toReturn[ownerRepoHTMLCollection[i].name].push(+issues[j].id);
+        }
+    }
+    return toReturn;
+}

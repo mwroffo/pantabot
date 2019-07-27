@@ -59,9 +59,9 @@ function buildUI() {
     ipcMain.on('form-submission', function j2gButtonHandler(event, owner, repo, issues, cmd) {
         Panta.multijira2github(owner, repo, undefined, issues, cmd);
     });
-    ipcMain.on('bulkUpdateFormSubmission', async function bulkUpdateHandler(event, startDate, endDate, newMilestoneTitle, cmd) {
+    ipcMain.on('bulkUpdateFormSubmission', async function bulkUpdateHandler(event, startDate, endDate, newMilestoneTitle, options, cmd) {
       try {
-        await Panta.doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, cmd);
+        await Panta.doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, options, cmd);
       } catch (err) { Panta.handleErr(err, true) }
     });
 }
