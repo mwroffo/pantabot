@@ -1,6 +1,8 @@
 const OWNER_REPOS = require('./config.js').OWNER_REPOS;
 const ipcRenderer = require('electron').ipcRenderer;
 const Panta = require('./panta.js');
+const START_DATE = document.getElementById("startDate").value; // EST
+const END_DATE = document.getElementById("endDate").value; // EST
 
 async function sendForm(event) {
     event.preventDefault(); // stop the form from submitting
@@ -12,24 +14,43 @@ async function sendForm(event) {
 }
 async function promptTargetIssues(event) {
     event.preventDefault();
-    const startDate = document.getElementById("startDate").value; // EST
-    const endDate = document.getElementById("endDate").value; // EST
-    const options = await Panta.multiRepoGetTargetIssues(OWNER_REPOS.split(' '), startDate, endDate, {debug: true, uiIsOn: true});
+    const options = await Panta.multiRepoGetTargetIssues(OWNER_REPOS.split(' '), START_DATE, END_DATE, {debug: true, uiIsOn: true});
     const optionsString = Panta.getTargetIssuesString(options, {debug: true, uiIsOn: true});
     console.log(`optionsString is`, optionsString);
-    document.getElementById("targetIssues").innerHTML = optionsString;
+    // document.getElementById("targetIssues").innerHTML = optionsString;
+
+    const ownerRepos = OWNER_REPOS.split(' ');
+    const issueObjArrays = Object.values(options);
+    
+    const queryTargetsContainer = document.getElementById("targetIssues");
+    if (queryTargetsContainer) console.log(`in renderQueryTargetsContainer queryTargetsContainer is`, queryTargetsContainer);
+    for (let i=0; i<ownerRepos.length; i++) {
+        let label = document.createElement("label");
+        label.name = `ownerRepos${i}`;
+        label.innerHTML = `<strong>${ownerRepos[i]}:</strong>`;
+        queryTargetsContainer.appendChild(label);
+        queryTargetsContainer.appendChild(document.createElement("br"));
+        const issues = issueObjArrays[i];
+        for (let j=0; j<issues.length; j++) {
+            const issue = issues[j];
+            let issueLabel = document.createElement("label");
+            issueLabel.innerHTML = ` ${issue.id} ${issue.title}`;
+            queryTargetsContainer.appendChild(issueLabel);
+            queryTargetsContainer.appendChild(document.createElement("br"));
+        }
+    }
 }
 
 function sendBulkUpdateForm(event) {
     event.preventDefault();
-    const startDate = document.getElementById("startDate").value; // EST
-    const endDate = document.getElementById("endDate").value; // EST
     const newMilestoneTitle = document.getElementById("newMilestoneTitle").value;
     
     // todo remove duplicated getTargetIssues behavior from bulkUpdate handler
-    ipcRenderer.send('bulkUpdateFormSubmission', startDate, endDate, newMilestoneTitle, {debug: true, uiIsOn: true} );
+    ipcRenderer.send('bulkUpdateFormSubmission', START_DATE, END_DATE, newMilestoneTitle, {debug: true, uiIsOn: true} );
 }
-(function renderQueryTargetsContainer() {
+(async function renderQueryTargetsContainer() {
     const currentContents = document.getElementById("ownerRepos").innerHTML;
-    document.getElementById("ownerRepos").innerHTML = `${currentContents}${OWNER_REPOS}`;
+    document.getElementById("ownerRepos").innerHTML = `${currentContents}${OWNER_REPOS}`
+    
+    
 })();
