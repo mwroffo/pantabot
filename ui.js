@@ -8,8 +8,8 @@ let window;
 function createWindow () {
   // Create the browser window.
   window = new BrowserWindow({
-    width: 1000,
-    height: 800,
+    width: 1400,
+    height: 1000,
     webPreferences: {
       nodeIntegration: true
     },
@@ -22,7 +22,7 @@ function createWindow () {
   });
 
   // Open the DevTools.
-  // window.webContents.openDevTools()
+  window.webContents.openDevTools()
   
   let contents = window.webContents;
   // Emitted when the window is closed.
@@ -56,19 +56,11 @@ function buildUI() {
             createWindow()
         }
     });
-    const cmd = {
-      post: true,
-      debug: false,
-      uiIsOn: true
-    }
     ipcMain.on('form-submission', function j2gButtonHandler(event, owner, repo, issues, cmd) {
         Panta.multijira2github(owner, repo, undefined, issues, cmd);
     });
     ipcMain.on('bulkUpdateFormSubmission', async function bulkUpdateHandler(event, startDate, endDate, newMilestoneTitle, cmd) {
       try {
-        startDate = new Date(startDate).toISOString();
-        endDate = new Date(endDate).toISOString();
-        // TODO k now retry this in the ui
         await Panta.doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, cmd);
       } catch (err) { Panta.handleErr(err, true) }
     });
