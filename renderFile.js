@@ -30,10 +30,11 @@ async function renderQueryTargetsContainer(event) {
     if (queryTargetsContainer) console.log(`in renderQueryTargetsContainer queryTargetsContainer is`, queryTargetsContainer);
     for (let i=0; i<ownerRepos.length; i++) {
         let ownerRepoULs = queryTargetsContainer.children;
+        const  ownerRepoUL = ownerRepoULs[i];
         const issues = issueObjArrays[i];
         for (let j=0; j<issues.length; j++) {
             const issue = issues[j];
-            label.appendChild(getIssueLI(issue));
+            ownerRepoUL.appendChild(getIssueLI(issue));
         }
     }
 }
