@@ -352,7 +352,7 @@ async function getTargetIssues(orgOrUser, repo, startDate, endDate, cmd) {
     } catch (err) {
         // todo distinguish 404, 301, 410?
         if (cmd.debug) console.log(`in getTargetIssues, throwing ${err}`);
-        handleErr(err, cmd.uiIsOn);
+        handleErr(err, cmd.uiIsOn); 
     }
 }
 

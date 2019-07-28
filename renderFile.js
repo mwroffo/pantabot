@@ -16,12 +16,32 @@ async function sendForm(event) {
 async function renderQueryTargetsContainer(event) {
     event.preventDefault();
     const options = await Panta.multiRepoGetTargetIssues(OWNER_REPOS.split(' '), START_DATE, END_DATE, {debug: true, uiIsOn: true});
-    
+
     const optionsString = Panta.getTargetIssuesString(options, {debug: true, uiIsOn: true});
     console.log(`optionsString is`, optionsString);
 
     const ownerRepos = OWNER_REPOS.split(' ');
     const issueObjArrays = Object.values(options);
+
+    // TODO append to each issueObjArray: any valid issueIDs from the textfields rendered earlier.
+    
+
+    const queryTargetsContainer = document.getElementById("queryTargetsContainer");
+    if (queryTargetsContainer) console.log(`in renderQueryTargetsContainer queryTargetsContainer is`, queryTargetsContainer);
+    for (let i=0; i<ownerRepos.length; i++) {
+        let ownerRepoULs = queryTargetsContainer.children;
+        const issues = issueObjArrays[i];
+        for (let j=0; j<issues.length; j++) {
+            const issue = issues[j];
+            label.appendChild(getIssueLI(issue));
+        }
+    }
+}
+(async function renderTargetReposAndEntryField() {
+    const currentContents = document.getElementById("ownerRepos").innerHTML;
+    document.getElementById("ownerRepos").innerHTML = `${currentContents}${OWNER_REPOS}`
+
+    const ownerRepos = OWNER_REPOS.split(' ');
     
     const queryTargetsContainer = document.getElementById("queryTargetsContainer");
     if (queryTargetsContainer) console.log(`in renderQueryTargetsContainer queryTargetsContainer is`, queryTargetsContainer);
@@ -30,11 +50,7 @@ async function renderQueryTargetsContainer(event) {
         label.name = `${ownerRepos[i]}`;
         label.innerHTML = `${ownerRepos[i]}`;
         queryTargetsContainer.appendChild(label);
-        const issues = issueObjArrays[i];
-        for (let j=0; j<issues.length; j++) {
-            const issue = issues[j];
-            label.appendChild(getIssueLI(issue));
-        }
+        
         let issueIDTextField = document.createElement("input");
         issueIDTextField.type = "text";
         issueIDTextField.name = `${ownerRepos[i]}-id-input`;
@@ -45,7 +61,7 @@ async function renderQueryTargetsContainer(event) {
         issueIDSubmitButton.value = "add Github issue by ID";
         label.appendChild(issueIDSubmitButton);
     }
-}
+})();
 
 function sendBulkUpdateForm(event) {
     event.preventDefault();
@@ -56,10 +72,6 @@ function sendBulkUpdateForm(event) {
     // todo remove duplicated getTargetIssues behavior from bulkUpdate handler
     ipcRenderer.send('bulkUpdateFormSubmission', START_DATE, END_DATE, newMilestoneTitle, options, {debug: true, uiIsOn: true} );
 }
-(function renderTargetRepos() {
-    const currentContents = document.getElementById("ownerRepos").innerHTML;
-    document.getElementById("ownerRepos").innerHTML = `${currentContents}${OWNER_REPOS}`
-})();
 
 function getTargetIssuesFromForm() {
     let toReturn = {};
