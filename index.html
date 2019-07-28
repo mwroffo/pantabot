@@ -30,7 +30,7 @@
     <p>Use INSTALL-CONFIG to change queried repos. Currently querying these repos:</p>
     <strong id="ownerRepos"></strong>
 
-    <form name="ipcGetTargetIssuesForm" onSubmit="JavaScript:promptTargetIssues(event)">
+    <form name="ipcGetTargetIssuesForm" onSubmit="JavaScript:renderQueryTargetsContainer(event)">
     <label>Start Date</label><input type="datetime-local" name="startDate" id="startDate" value="2019-07-23T10:00:00">
       <label>End Date</label><input type="datetime-local" name="endDate" id="endDate" value="2019-07-24T16:00:00">
         <br><input type="submit" value="Query issues in date range (takes 2-3 seconds)">

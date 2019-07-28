@@ -588,7 +588,7 @@ async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
 async function doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, options, cmd) {
     try {
         const updatesDone = await multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd);
-        handlePrint(`in multiReposUpdateMilestoneOfIssues: successfully updated milestones to ${newMilestoneTitle}`, cmd.uiIsOn);
+        handlePrint(`Successfully updated milestones to \'${newMilestoneTitle}\'`, cmd.uiIsOn);
         return updatesDone;
     } catch (err) {
         handlePrint(`in doBulkMilestoneUpdate(${newMilestoneTitle}, ${startDate}, ${endDate}, ${OWNER_REPOS}): catching error ${err} and throwing`);
