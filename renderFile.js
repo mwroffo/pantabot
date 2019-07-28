@@ -33,8 +33,10 @@ async function renderQueryTargetsContainer(event) {
         const  ownerRepoUL = ownerRepoULs[i];
         const issues = issueObjArrays[i];
         // append to issues, anything in the textfield
-        const issueEntryField = document.getElementById(`${ownerRepos[i]}-id-input`)
+        const issueEntryField = document.getElementById(`${ownerRepos[i]}-id-input`);
         console.log(`in renderQueryTargetsContainer, issueEntryField for ${ownerRepos[i]} contains`, issueEntryField.value)
+        const issueIDsArray = issueEntryField.value.split(' ').map(e => +e);
+        console.log(`in renderQueryTargetsContainer, issueIDsArray for ${ownerRepos[i]} contains`, issueIDsArray);
         for (let j=0; j<issues.length; j++) {
             const issue = issues[j];
             ownerRepoUL.appendChild(getIssueLI(issue));
