@@ -163,6 +163,14 @@ async function listIssues(orgOrUser, repo, cmd) {
         return issues.data;
     } catch (err) { handleErr(err, cmd.uiIsOn) }
 }
+async function getIssueTitleByID(orgOrUser, repo, issueID, cmd) {
+    try {
+        const github = new Github(GITHUB_CONF);
+        const Issue = github.getIssues(orgOrUser, repo);
+        let issues = await Issue.getIssue(issueID);
+        return issues.data.title;
+    } catch (err) { handleErr(err, cmd.uiIsOn) }
+}
 
 function checkForDuplicate(issues, title) {
     let toReturn = undefined;
@@ -716,3 +724,4 @@ module.exports.multiRepoRemoveMilestoneFromIssue = multiRepoRemoveMilestoneFromI
 module.exports.handleErr = handleErr;
 module.exports.handlePrint = handlePrint;
 module.exports.getTargetIssuesString = getTargetIssuesString;
+module.exports.getIssueTitleByID = getIssueTitleByID;
