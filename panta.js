@@ -170,9 +170,7 @@ async function getIssueTitleByID(orgOrUser, repo, issueID, cmd) {
         let issues = await Issue.getIssue(issueID);
         return issues.data.title;
     } catch (err) {
-        err.message += ` Confirm that issue ${issueID} exists on github.com/${orgOrUser}/${repo}.`;
-        err = new Error(` Confirm that issue ${issueID} exists on github.com/${orgOrUser}/${repo}.`);
-        handleErr(err, cmd.uiIsOn);
+        return undefined;
     }
 }
 

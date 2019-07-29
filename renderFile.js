@@ -36,7 +36,7 @@ async function renderQueryTargetsContainer(event) {
 
         const issueEntryField = document.getElementById(`${ownerRepos[i]}-id-input`);
         console.log(`in renderQueryTargetsContainer, issueEntryField for ${ownerRepos[i]} contains`, issueEntryField.value)
-        console.log(`in renderQueryTargetsContainer, issueEntryField.value === '' is`, issueEntryField.value === '')
+        
         let issueIDsArray = [];
         if (issueEntryField.value !== '') {
             issueIDsArray = issueEntryField.value.split(' ').map(e => +e);
@@ -46,7 +46,12 @@ async function renderQueryTargetsContainer(event) {
             const entryIssueID = issueIDsArray[j];
             const entryIssueTitle = await Panta.getIssueTitleByID(owner, repo, entryIssueID, {debug: true, uiIsOn: true} );
             const entryIssue = {"id":entryIssueID, "title": entryIssueTitle};
-            issues.push(entryIssue);
+            if (entryIssue.title === undefined) {
+                console.log(`in renderQueryTargetsContainer, silently dropping undefined issue`)
+                // Panta.handlePrint(`Error: Confirm that issue ${entryIssueID} exists on github.com/${owner}/${repo}.`, true)
+            } else {
+                issues.push(entryIssue);
+            }
         }
         for (let j=0; j<issues.length; j++) {
             const issue = issues[j];
