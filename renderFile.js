@@ -33,12 +33,14 @@ async function renderQueryTargetsContainer(event) {
         let ownerRepoULs = queryTargetsContainer.children;
         const  ownerRepoUL = ownerRepoULs[i];
         const issues = issueObjArrays[i];
-        // append to issues, anything in the textfield
 
-        // TODO RESOLVE THIS MERGE CONFLICT, make entryIssueObjs from the entryIssueIDs array
         const issueEntryField = document.getElementById(`${ownerRepos[i]}-id-input`);
-        // console.log(`in renderQueryTargetsContainer, issueEntryField for ${ownerRepos[i]} contains`, issueEntryField.value)
-        const issueIDsArray = issueEntryField.value.split(' ').map(e => +e);
+        console.log(`in renderQueryTargetsContainer, issueEntryField for ${ownerRepos[i]} contains`, issueEntryField.value)
+        console.log(`in renderQueryTargetsContainer, issueEntryField.value === '' is`, issueEntryField.value === '')
+        const issueIDsArray = [];
+        if (issueEntryField.value !== '') {
+            issueIDsArray = issueEntryField.value.split(' ').map(e => +e);
+        }
         console.log(`in renderQueryTargetsContainer, issueIDsArray for ${ownerRepos[i]} contains`, issueIDsArray);
         for (let j=0; j<issueIDsArray.length; j++) {
             const entryIssueID = issueIDsArray[j];

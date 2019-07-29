@@ -169,7 +169,11 @@ async function getIssueTitleByID(orgOrUser, repo, issueID, cmd) {
         const Issue = github.getIssues(orgOrUser, repo);
         let issues = await Issue.getIssue(issueID);
         return issues.data.title;
-    } catch (err) { handleErr(err, cmd.uiIsOn) }
+    } catch (err) {
+        err.message += ` Confirm that issue ${issueID} exists on github.com/${orgOrUser}/${repo}.`;
+        err = new Error(` Confirm that issue ${issueID} exists on github.com/${orgOrUser}/${repo}.`);
+        handleErr(err, cmd.uiIsOn);
+    }
 }
 
 function checkForDuplicate(issues, title) {
