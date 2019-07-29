@@ -37,7 +37,7 @@ async function renderQueryTargetsContainer(event) {
         const issueEntryField = document.getElementById(`${ownerRepos[i]}-id-input`);
         console.log(`in renderQueryTargetsContainer, issueEntryField for ${ownerRepos[i]} contains`, issueEntryField.value)
         console.log(`in renderQueryTargetsContainer, issueEntryField.value === '' is`, issueEntryField.value === '')
-        const issueIDsArray = [];
+        let issueIDsArray = [];
         if (issueEntryField.value !== '') {
             issueIDsArray = issueEntryField.value.split(' ').map(e => +e);
         }
@@ -73,10 +73,6 @@ async function renderQueryTargetsContainer(event) {
         issueIDTextField.name = `${ownerRepos[i]}-id-input`;
         issueIDTextField.id = `${ownerRepos[i]}-id-input`;
         label.appendChild(issueIDTextField);
-        let issueIDSubmitButton = document.createElement("input");
-        issueIDSubmitButton.type = "submit";
-        issueIDSubmitButton.value = "add Github issue by ID";
-        label.appendChild(issueIDSubmitButton);
     }
 })();
 
