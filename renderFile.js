@@ -17,14 +17,8 @@ async function renderQueryTargetsContainer(event) {
     event.preventDefault();
     const options = await Panta.multiRepoGetTargetIssues(OWNER_REPOS.split(' '), START_DATE, END_DATE, {debug: true, uiIsOn: true});
 
-    const optionsString = Panta.getTargetIssuesString(options, {debug: true, uiIsOn: true});
-    console.log(`optionsString is`, optionsString);
-
     const ownerRepos = OWNER_REPOS.split(' ');
     const issueObjArrays = Object.values(options);
-
-    // TODO append to each issueObjArray: any valid issueIDs from the textfields rendered earlier.
-    
 
     const queryTargetsContainer = document.getElementById("queryTargetsContainer");
     if (queryTargetsContainer) console.log(`in renderQueryTargetsContainer queryTargetsContainer is`, queryTargetsContainer);
@@ -47,9 +41,12 @@ async function renderQueryTargetsContainer(event) {
             const entryIssueTitle = await Panta.getIssueTitleByID(owner, repo, entryIssueID, {debug: true, uiIsOn: true} );
             const entryIssue = {"id":entryIssueID, "title": entryIssueTitle};
             if (entryIssue.title === undefined) {
-                console.log(`in renderQueryTargetsContainer, silently dropping undefined issue`)
+                console.log(`in renderQueryTargetsContainer, silently dropping undefined issue`, entryIssue)
                 // Panta.handlePrint(`Error: Confirm that issue ${entryIssueID} exists on github.com/${owner}/${repo}.`, true)
-            } else {
+            } else if (isDupEntryIssue(entryIssue.id, ownerRepoUL)) { // issue already exists
+                console.log(`in renderQueryTargetsContainer, silently dropping dup issue`, entryIssue);
+            }
+            else {
                 issues.push(entryIssue);
             }
         }
@@ -85,29 +82,63 @@ function sendBulkUpdateForm(event) {
     event.preventDefault();
     const newMilestoneTitle = document.getElementById("newMilestoneTitle").value;
 
-    const options = getTargetIssuesFromForm();
+    const options = getTargetIssuesFromContainer();
     
     // todo remove duplicated getTargetIssues behavior from bulkUpdate handler
     ipcRenderer.send('bulkUpdateFormSubmission', START_DATE, END_DATE, newMilestoneTitle, options, {debug: true, uiIsOn: true} );
 }
 
-function getTargetIssuesFromForm() {
+function getTargetIssuesFromContainer() {
     let toReturn = {};
     const queryTargetsContainer = document.getElementById("queryTargetsContainer");
-    const ownerRepoHTMLCollection = queryTargetsContainer.children;
-    if (ownerRepoHTMLCollection.length === 0) {
+    const ownerRepoULs = queryTargetsContainer.children; // an  HTMLCollection object
+    if (ownerRepoULs.length === 0) {
         const err = new Error('Empty issue query. Enter a date range, then click \'Query issues in date range\' to prepare a bulk issue update')
         handleErr(err);
     }
-    console.log(`in getTargetIssuesFromForm, ownerRepoHTMLCollection are`, ownerRepoHTMLCollection);
-    for (let i=0; i<ownerRepoHTMLCollection.length; i++) {
-        const issues = ownerRepoHTMLCollection[i].children;
-        toReturn[ownerRepoHTMLCollection[i].name] = [];
-        for (let j=0; j<issues.length; j++) {
-            toReturn[ownerRepoHTMLCollection[i].name].push(+issues[j].id);
+    console.log(`in getTargetIssuesFromContainer, ownerRepoULs is`, ownerRepoULs);
+    for (let i=0; i<ownerRepoULs.length; i++) {
+        const ownerRepoUL = ownerRepoULs[i];
+        const issuesLIs = ownerRepoUL.children;
+        const ownerRepoName = ownerRepoUL.name;
+        toReturn[ownerRepoName] = [];
+        for (let j=0; j<issuesLIs.length; j++) {
+            const issueLI = issuesLIs[j];
+            const issueID = +issueLI.id;
+            toReturn[ownerRepoName].push(issueID);
         }
     }
     return toReturn;
+}
+
+/**
+ * gets a ownerRepoUL object.
+ * @return number array with issueIDs found as LIs in the ownerRepoUL
+ */
+function getEnteredIssueIDsForSingleRepo(ownerRepoUL) {
+    const issues = ownerRepoUL.children;
+    console.log(`in getEnteredIssueIDsForSingleRepo, ownerRepoUL is `, ownerRepoUL)
+    for (let j=0; j<issues.length; j++) {
+        const issueID = +issues[j].id;
+        toReturn[ownerRepo].push(issueID);
+    }
+    console.log(`in getEnteredIssueIDsForSingleRepo, returning `, issues);
+    return issues;
+}
+/**
+ * returns true if the passed issueID already exists in a specified ownerRepo html collection
+ * @param {*} issueID 
+ */
+function isDupEntryIssue(issueID, ownerRepoUL) {
+    const issues = getEnteredIssueIDsForSingleRepo(ownerRepoUL);
+    for (let i=0; i<issues.length; i++) {
+        const thatIssueID = issues[i];
+        if (issueID === thatIssueID) {
+            console.log(`in isDupEntryIssue, returning true`);
+            return true;
+        }
+    }
+    return false;
 }
 function handleErr(err) {
     dialog.showMessageBox({
