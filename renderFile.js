@@ -13,10 +13,26 @@ async function sendForm(event) {
     issues = issues.split(' ');
     ipcRenderer.send('form-submission', owner, repo, issues, {post: true, debug: false, uiIsOn: true} );
 }
+function removePreviouslyQueriedIssues(issueObjArray, ownerRepoUL) {
+    let issueObjArrayToReturn = issueObjArray;
+    for (let i=0; i<issueObjArray.length; i++) {
+        const issueObj = issueObjArray[i];
+        if (isDupEntryIssue(issueObj.id, ownerRepoUL)) {
+            console.log(`in removePreviouslyQueriedIssues, removing dup issue`, issueObj)
+            issueObjArrayToReturn = arrayRemoveIssueObj(issueObjArrayToReturn, issueObj)
+            console.log(`in removePreviouslyQueriedIssues, issueObjArrayToReturn is`, issueObjArrayToReturn)
+        }
+    }
+    return issueObjArrayToReturn;
+}
+function arrayRemoveIssueObj(issueObjsArray, issueObjToRemove) {
+    return issueObjsArray.filter(function(elem) {
+        return elem.id != issueObjToRemove.id;
+    });
+}
 async function renderQueryTargetsContainer(event) {
     event.preventDefault();
-    const options = await Panta.multiRepoGetTargetIssues(OWNER_REPOS.split(' '), START_DATE, END_DATE, {debug: true, uiIsOn: true});
-
+    let options = await Panta.multiRepoGetTargetIssues(OWNER_REPOS.split(' '), START_DATE, END_DATE, {debug: true, uiIsOn: true});
     const ownerRepos = OWNER_REPOS.split(' ');
     const issueObjArrays = Object.values(options);
 
@@ -25,8 +41,9 @@ async function renderQueryTargetsContainer(event) {
     for (let i=0; i<ownerRepos.length; i++) {
         const [owner, repo] = ownerRepos[i].split('/');
         let ownerRepoULs = queryTargetsContainer.children;
-        const  ownerRepoUL = ownerRepoULs[i];
-        const issues = issueObjArrays[i];
+        const ownerRepoUL = ownerRepoULs[i];
+        let issueObjArray = issueObjArrays[i];
+        issueObjArray = removePreviouslyQueriedIssues(issueObjArray, ownerRepoUL);
 
         const issueEntryField = document.getElementById(`${ownerRepos[i]}-id-input`);
         console.log(`in renderQueryTargetsContainer, issueEntryField for ${ownerRepos[i]} contains`, issueEntryField.value)
@@ -43,16 +60,17 @@ async function renderQueryTargetsContainer(event) {
             if (entryIssue.title === undefined) {
                 console.log(`in renderQueryTargetsContainer, silently dropping undefined issue`, entryIssue)
                 // Panta.handlePrint(`Error: Confirm that issue ${entryIssueID} exists on github.com/${owner}/${repo}.`, true)
-            } else if (isDupEntryIssue(entryIssue.id, ownerRepoUL)) { // issue already exists
+            }
+            else if (isDupEntryIssue(entryIssue.id, ownerRepoUL)) { // issue already exists
                 console.log(`in renderQueryTargetsContainer, silently dropping dup issue`, entryIssue);
             }
             else {
-                issues.push(entryIssue);
+                issueObjArray.push(entryIssue);
             }
         }
-        for (let j=0; j<issues.length; j++) {
-            const issue = issues[j];
-            ownerRepoUL.appendChild(getIssueLI(issue));
+        for (let j=0; j<issueObjArray.length; j++) {
+            const issueObj = issueObjArray[j];
+            ownerRepoUL.appendChild(getIssueLI(issueObj));
         }
     }
 }
@@ -96,18 +114,14 @@ function getTargetIssuesFromContainer() {
         const err = new Error('Empty issue query. Enter a date range, then click \'Query issues in date range\' to prepare a bulk issue update')
         handleErr(err);
     }
-    console.log(`in getTargetIssuesFromContainer, ownerRepoULs is`, ownerRepoULs);
+    // console.log(`in getTargetIssuesFromContainer, ownerRepoULs is`, ownerRepoULs);
     for (let i=0; i<ownerRepoULs.length; i++) {
         const ownerRepoUL = ownerRepoULs[i];
         const issuesLIs = ownerRepoUL.children;
         const ownerRepoName = ownerRepoUL.name;
-        toReturn[ownerRepoName] = [];
-        for (let j=0; j<issuesLIs.length; j++) {
-            const issueLI = issuesLIs[j];
-            const issueID = +issueLI.id;
-            toReturn[ownerRepoName].push(issueID);
-        }
+        toReturn[ownerRepoName] = getEnteredIssueIDsForSingleRepo(ownerRepoUL);
     }
+    console.log(`in getTargetIssuesFromContainer, returning`, toReturn);
     return toReturn;
 }
 
@@ -116,25 +130,27 @@ function getTargetIssuesFromContainer() {
  * @return number array with issueIDs found as LIs in the ownerRepoUL
  */
 function getEnteredIssueIDsForSingleRepo(ownerRepoUL) {
-    const issues = ownerRepoUL.children;
-    console.log(`in getEnteredIssueIDsForSingleRepo, ownerRepoUL is `, ownerRepoUL)
-    for (let j=0; j<issues.length; j++) {
-        const issueID = +issues[j].id;
-        toReturn[ownerRepo].push(issueID);
+    let idsToReturn = [];
+    const issuesLIs = ownerRepoUL.children;
+    // console.log(`in issuesLIs, issuesLIs is`, issuesLIs)
+    for (let i=1; i<issuesLIs.length; i++) {
+        const issueLI = issuesLIs[i];
+        const issueID = +issueLI.id;
+        idsToReturn.push(issueID);
     }
-    console.log(`in getEnteredIssueIDsForSingleRepo, returning `, issues);
-    return issues;
+    return idsToReturn;
 }
 /**
  * returns true if the passed issueID already exists in a specified ownerRepo html collection
  * @param {*} issueID 
  */
 function isDupEntryIssue(issueID, ownerRepoUL) {
-    const issues = getEnteredIssueIDsForSingleRepo(ownerRepoUL);
-    for (let i=0; i<issues.length; i++) {
-        const thatIssueID = issues[i];
+    const issueIDs = getEnteredIssueIDsForSingleRepo(ownerRepoUL);
+    const ownerRepoName = ownerRepoUL.name;
+    for (let i=0; i<issueIDs.length; i++) {
+        const thatIssueID = issueIDs[i];
         if (issueID === thatIssueID) {
-            console.log(`in isDupEntryIssue, returning true`);
+            console.log(`in isDupEntryIssue, ${issueID} is dup under ${ownerRepoName}`);
             return true;
         }
     }
@@ -158,3 +174,4 @@ function getIssueLI(issue) {
     issueLI.innerHTML = ` ${issue.id} \'${issue.title}\'`;
     return issueLI;
 }
+module.exports.isDupEntryIssue = isDupEntryIssue;
