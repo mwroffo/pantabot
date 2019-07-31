@@ -133,7 +133,7 @@ function renderTargetReposAndEntryField() {
         issueIDTextField.type = "text";
         issueIDTextField.name = `${ownerRepo}-id-input`;
         issueIDTextField.id = `${ownerRepo}-id-input`;
-        issueIDTextField.placeholder = `valid issueID`;
+        issueIDTextField.placeholder = `... valid issueIDs`;
         label.appendChild(issueIDTextField);
     }
 }

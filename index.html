@@ -46,62 +46,60 @@
     </div>
 
     <div id="j2g" class="tabcontent">
-    <h3>Jira-to-GitHub issue porter</h3>
-    <p>SETUP: Before using panta, configure your authentication by double-clicking INSTALL-CONFIG inside the INSTALL-CONFIG folder.</p>
-    <p>Troubleshooting: if issue-posts say "error 404", confirm that your username/password were correctly registered with INSTALL-CONFIG. Submitting with the issue-codes field empty will cause error 400.</p>
+    <h3>Jira-to-GitHub</h3>
     
     <form name="ipcForm" onSubmit="JavaScript:sendForm(event)">
       
-      <label>Posting issue(s) to https://github.com/owner/repo</label><br>
+      <label>Porting Jira issue(s) </label> <input type="text" name="jira-issue-codes" id="jira-issue-codes" placeholder="MVD-3048 MVD-3060">
+      to <br><label>https://github.com/</label>
 
-      <input type="text" name="owner" id="owner" value="mwroffo">
+      <input type="text" name="owner" id="owner" value="" placeholder="owner (e.g. google)">
       /
-      <input type="text" name="repo" id="repo" value="testrepo"><br>
+      <input type="text" name="repo" id="repo" value="" placeholder="repository (e.g. amber)"><br>
       
-      Jira issue codes, separated by spaces:<br>
-      For example: "MVD-3048 MVD-3060 MVD-3070"<br>
-      <input type="text" name="jira-issue-codes" id="jira-issue-codes" value="MVD-3048 MVD-3060"><br>
+      
       <br>
-      <input type="submit" value="Post Jira issues to Github">
+      <input class="submit" type="submit" value="Port Jira issues to Github">
     </form>
   </div>
 
   <div id="bulk" class="tabcontent">
     <h3>Bulk Milestone-Updater</h3>
-    <p>Specify target repos in settings.</p>
 
     <form name="ipcGetTargetIssuesForm" onSubmit="JavaScript:renderQueryTargetsContainer(event)">
-    <label>Start Date</label><input type="datetime-local" name="startDate" id="startDate" value="2019-07-23T10:00:00">
-      <label>End Date</label><input type="datetime-local" name="endDate" id="endDate" value="2019-07-24T16:00:00">
-        <br><input type="submit" value="Query issues in date range (takes 2-3 seconds)">
+    <input class="submit" type="submit" value="Query"><label> issues that closed between</label><input type="datetime-local" name="startDate" id="startDate" value="2019-07-23T10:00:00">
+      <label>and</label><input type="datetime-local" name="endDate" id="endDate" value="2019-07-24T16:00:00">
+        <br>
     </form>
     <div id="queryTargetsContainer" style="height:200px;width:400px;padding:2px; border:1px solid #ccc;overflow:auto;"></div>
 
     <form name="ipcBulkUpdateForm" onSubmit="JavaScript:sendBulkUpdateForm(event)">
-      <label>New Milestone: </label> <input type="text" name="newMilestoneTitle" id="newMilestoneTitle" value="UI Test Milestone">
-      <input type="submit" value="Update Milestone for queried issues">
+      <input placeholder="Title of new milestone (e.g. &quot;1.5.0&quot;)" type="text" name="newMilestoneTitle" id="newMilestoneTitle" value=""><br>
+      <input class="submit" type="submit" value="Submit Update">
+      <input class="submit" type="submit" value="Clear issues">
     </form>
   </div>
 
   <div id="settings" class="tabcontent">
     
-      <p>Enter username/password pairs:</p>
-      
+    <h3>Settings</h3>
+
       <form name="ipcForm" onSubmit="JavaScript:registerSettings(event)">
         Jira username:<br>
-        <input type="text" name="jira-username" id="jira-username" value="mroffo"><br>
+        <input placeholder="jmoriarty" type="text" name="jira-username" id="jira-username" value="mroffo"><br>
         Jira password:<br>
-        <input type="password" name="jira-password" id="jira-password" value="Laper9133"><br>
+        <input placeholder="$tudyIn$carl3t" type="password" name="jira-password" id="jira-password" value="Laper9133"><br>
         Github username:<br>
-        <input type="text" name="github-username" id="github-username" value="mwroffo"><br>
+        <input placeholder="sholmes" type="text" name="github-username" id="github-username" value="mwroffo"><br>
         Github password:<br>
-        <input type="password" name="github-password" id="github-password" value="Oaper9133"><br>
+        <input placeholder="221BBakerStLondon" type="password" name="github-password" id="github-password" value="Oaper9133"><br>
   
-        <p>Enter owner/repo pairs, delimited by spaces (e.g. "myUsername/myRepo someOrganization/someRepo"):</p>
+        <p>Owner/Repo pairs</p>
   
-        <input type="text" name="ownerRepos" id="ownerRepos" value="mwroffo/testrepo mwroffo/testrepo2 mwroffo/testrepo3"><br>
+        <input placeholder="zowe/zlux zowe/docs-site octokit/rest.js" type="text" name="ownerRepos" id="ownerRepos" value="mwroffo/testrepo mwroffo/testrepo2 mwroffo/testrepo3"><br>
   
-        <input type="submit" value="Register this configuration with panta">
+        <input class="submit" type="submit" value="Apply changes">
+        <p>(Close Panta and reopen if you changed a username/password!)</p>
     </form>
   </div>
 
