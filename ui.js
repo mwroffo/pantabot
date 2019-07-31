@@ -77,8 +77,8 @@ function buildUI() {
           await editUsernameInConfig('config.js', 'GITHUB_CONF', githubUsername, cmd)
           Panta.reloadAuth(jiraUsername, githubUsername);
           await editStringExport('config.js', 'OWNER_REPOS', ownerRepos, cmd);
-          window.webContents.send('renderTargetReposAndEntryField')
-          handlePrint(`Successfully registered passwords for ${jiraUsername}@jira and ${githubUsername}@github, and target repos ${ownerRepos}`);
+          window.webContents.send('renderTargetReposAndEntryField');
+          handlePrint(`Settings updated. For password changes to take effect, restart Panta.`);
         } catch (err) {
           handlePrint(`in registerConfig, throwing ${err}`);
           handleErr(err);
