@@ -30,8 +30,16 @@ function arrayRemoveIssueObj(issueObjsArray, issueObjToRemove) {
         return elem.id != issueObjToRemove.id;
     });
 }
+function getIssueIDsFromIssueEntryField(issueEntryField) {
+    let issueIDsArray = [];
+    if (issueEntryField.value !== '') {
+        issueIDsArray = issueEntryField.value.split(' ').map(e => +e);
+    }
+    return issueIDsArray;
+}
 async function renderQueryTargetsContainer(event) {
     event.preventDefault();
+    // inits from time params:
     let options = await Panta.multiRepoGetTargetIssues(OWNER_REPOS.split(' '), START_DATE, END_DATE, {debug: true, uiIsOn: true});
     const ownerRepos = OWNER_REPOS.split(' ');
     const issueObjArrays = Object.values(options);
@@ -47,12 +55,10 @@ async function renderQueryTargetsContainer(event) {
 
         const issueEntryField = document.getElementById(`${ownerRepos[i]}-id-input`);
         console.log(`in renderQueryTargetsContainer, issueEntryField for ${ownerRepos[i]} contains`, issueEntryField.value)
-        
-        let issueIDsArray = [];
-        if (issueEntryField.value !== '') {
-            issueIDsArray = issueEntryField.value.split(' ').map(e => +e);
-        }
+
+        const issueIDsArray = getIssueIDsFromIssueEntryField(issueEntryField);
         console.log(`in renderQueryTargetsContainer, issueIDsArray for ${ownerRepos[i]} contains`, issueIDsArray);
+        
         for (let j=0; j<issueIDsArray.length; j++) {
             const entryIssueID = issueIDsArray[j];
             const entryIssueTitle = await Panta.getIssueTitleByID(owner, repo, entryIssueID, {debug: true, uiIsOn: true} );
