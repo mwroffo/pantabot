@@ -17,7 +17,7 @@ reloadAuth();
 function reloadAuth() {
     CONFIG.getAuth().then((data) => {
         [JIRA_CONF, GITHUB_CONF] = data;
-        console.log(`in reloadAuth, GITHUB_CONF is`, GITHUB_CONF, `JIRA_CONF is`, JIRA_CONF);
+        // console.log(`in reloadAuth, GITHUB_CONF is`, GITHUB_CONF, `JIRA_CONF is`, JIRA_CONF);
     });
 }
 
