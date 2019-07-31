@@ -1,9 +1,19 @@
-const OWNER_REPOS = require('./config.js').OWNER_REPOS;
+let OWNER_REPOS = require('./config.js').OWNER_REPOS;
 const ipcRenderer = require('electron').ipcRenderer;
 const dialog = require('electron').remote.dialog;
 const Panta = require('./panta.js');
 const START_DATE = document.getElementById("startDate").value; // EST
 const END_DATE = document.getElementById("endDate").value; // EST
+
+function registerSettings(event) {
+    event.preventDefault()
+    const jiraUsername = document.getElementById("jira-username").value;
+    const jiraPassword = document.getElementById("jira-password").value;
+    const githubUsername = document.getElementById("github-username").value;
+    const githubPassword = document.getElementById("github-password").value;
+    const ownerRepos = document.getElementById("ownerRepos").value;
+    ipcRenderer.send('register-auth', jiraUsername, jiraPassword, githubUsername, githubPassword, ownerRepos);
+}
 
 async function sendForm(event) {
     event.preventDefault(); // stop the form from submitting
@@ -37,6 +47,28 @@ function getIssueIDsFromIssueEntryField(issueEntryField) {
     }
     return issueIDsArray;
 }
+
+async function openTab(event, tabName) {
+    // Declare all variables
+    var i, tabcontent, tablinks;
+  
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+  
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+  
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(tabName).style.display = "block";
+    event.currentTarget.className += " active";
+}
+
 async function renderQueryTargetsContainer(event) {
     event.preventDefault();
     // inits from time params:
@@ -80,27 +112,31 @@ async function renderQueryTargetsContainer(event) {
         }
     }
 }
-(async function renderTargetReposAndEntryField() {
-    const currentContents = document.getElementById("ownerRepos").innerHTML;
-    document.getElementById("ownerRepos").innerHTML = `${currentContents}${OWNER_REPOS}`
 
-    const ownerRepos = OWNER_REPOS.split(' ');
+function renderTargetReposAndEntryField() {
+    const ownerRepos = document.getElementById("ownerRepos").value.split(' ');
+    console.log(`in renderQueryTargetsContainer, OWNER_REPOS is`, ownerRepos);
     
-    const queryTargetsContainer = document.getElementById("queryTargetsContainer");
+    let queryTargetsContainer = document.getElementById("queryTargetsContainer");
+    queryTargetsContainer = clearContainer(queryTargetsContainer);
     if (queryTargetsContainer) console.log(`in renderQueryTargetsContainer queryTargetsContainer is`, queryTargetsContainer);
+
     for (let i=0; i<ownerRepos.length; i++) {
+        const ownerRepo = ownerRepos[i];
+        console.log(`in renderQueryTargetsContainer ownerRepo ${i} is`, ownerRepo);
         let label = document.createElement("ul");
-        label.name = `${ownerRepos[i]}`;
-        label.innerHTML = `${ownerRepos[i]}`;
+        label.name = `${ownerRepo}`;
+        label.innerHTML = `${ownerRepo}`;
         queryTargetsContainer.appendChild(label);
         
         let issueIDTextField = document.createElement("input");
         issueIDTextField.type = "text";
-        issueIDTextField.name = `${ownerRepos[i]}-id-input`;
-        issueIDTextField.id = `${ownerRepos[i]}-id-input`;
+        issueIDTextField.name = `${ownerRepo}-id-input`;
+        issueIDTextField.id = `${ownerRepo}-id-input`;
+        issueIDTextField.placeholder = `valid issueID`;
         label.appendChild(issueIDTextField);
     }
-})();
+}
 
 function sendBulkUpdateForm(event) {
     event.preventDefault();
@@ -180,4 +216,22 @@ function getIssueLI(issue) {
     issueLI.innerHTML = ` ${issue.id} \'${issue.title}\'`;
     return issueLI;
 }
+
+function clearContainer(container) {
+    while (container.hasChildNodes()) {
+        container.removeChild(container.lastChild);
+    }
+    return container;
+}
+
+(function init() {
+    renderTargetReposAndEntryField();
+    document.getElementById("defaultOpen").click();
+})();
+
+ipcRenderer.on('renderTargetReposAndEntryField', () => {
+    renderTargetReposAndEntryField();
+});
+
 module.exports.isDupEntryIssue = isDupEntryIssue;
+module.exports.renderTargetReposAndEntryField = renderTargetReposAndEntryField;
