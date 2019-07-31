@@ -7,11 +7,19 @@ const program = require('commander');
 const RequestPromise = require('request-promise');
 const Request = require('request');
 const J2G_USERNAME_MAP = require('./j2g-username-map');
-
-const GITHUB_CONF = require('./config.js').GITHUB_CONF;
-const JIRA_CONF = require('./config.js').JIRA_CONF;
+const CONFIG = require('./config.js');
 const OWNER_REPOS = require('./config.js').OWNER_REPOS;
+let JIRA_CONF = undefined;
+let GITHUB_CONF = undefined;
 const pkg = require('./package.json');
+
+reloadAuth();
+function reloadAuth() {
+    CONFIG.getAuth().then((data) => {
+        [JIRA_CONF, GITHUB_CONF] = data;
+        console.log(`in reloadAuth, GITHUB_CONF is`, GITHUB_CONF, `JIRA_CONF is`, JIRA_CONF);
+    });
+}
 
 function setupCLI() {
     program
@@ -727,3 +735,4 @@ module.exports.handleErr = handleErr;
 module.exports.handlePrint = handlePrint;
 module.exports.getTargetIssuesString = getTargetIssuesString;
 module.exports.getIssueTitleByID = getIssueTitleByID;
+module.exports.reloadAuth = reloadAuth;

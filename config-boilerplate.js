@@ -2,12 +2,18 @@
 // Make sure that config.js is in .gitignore!!!
 const keytar = require('keytar');
 
-let JIRA_CONF = {};
-JIRA_CONF.username = 'jsmith';
-keytar.getPassword('jira', JIRA_CONF.username).then(password => JIRA_CONF.password = password);
-let GITHUB_CONF = {};
-GITHUB_CONF.username = 'jappleseed';
-keytar.getPassword('github', GITHUB_CONF.username).then(password => GITHUB_CONF.password = password);
-
-module.exports.JIRA_CONF = JIRA_CONF;
-module.exports.GITHUB_CONF = GITHUB_CONF;
+async function getAuth() {
+    let JIRA_CONF = {};
+    JIRA_CONF.username = 'jsmith';
+    const jiraPassword = await keytar.getPassword('jira', JIRA_CONF.username);
+    JIRA_CONF.password = jiraPassword;
+    let GITHUB_CONF = {};
+    GITHUB_CONF.username = 'jsmith';
+    const githubPassword = await keytar.getPassword('github', GITHUB_CONF.username);
+    GITHUB_CONF.password = githubPassword;
+    let toReturn = [];
+    toReturn.push(JIRA_CONF, GITHUB_CONF);
+    return toReturn;
+}
+module.exports.OWNER_REPOS = "octokit/rest.js";
+module.exports.getAuth = getAuth;
