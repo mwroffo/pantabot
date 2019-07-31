@@ -12,12 +12,14 @@ const OWNER_REPOS = require('./config.js').OWNER_REPOS;
 let JIRA_CONF = undefined;
 let GITHUB_CONF = undefined;
 const pkg = require('./package.json');
+reloadAuth(undefined, undefined);
 
-reloadAuth();
-function reloadAuth() {
+function reloadAuth(jiraUsername, githubUsername) {
     CONFIG.getAuth().then((data) => {
         [JIRA_CONF, GITHUB_CONF] = data;
-        // console.log(`in reloadAuth, GITHUB_CONF is`, GITHUB_CONF, `JIRA_CONF is`, JIRA_CONF);
+        if (jiraUsername) JIRA_CONF.username = jiraUsername;
+        if (githubUsername) GITHUB_CONF.username = githubUsername;
+        console.log(`in reloadAuth, GITHUB_CONF is`, GITHUB_CONF, `JIRA_CONF is`, JIRA_CONF);
     });
 }
 
