@@ -7,7 +7,46 @@
   </head>
   <body>
     <h1>Panta</h1>
-    <h2>Jira-to-GitHub issue porter</h2>
+
+    <div class="tab">
+        <button class="tablinks" onclick="openTab(event, 'welcome')" id="defaultOpen">Home</button>
+        <button class="tablinks" onclick="openTab(event, 'j2g')">J2G</button>
+        <button class="tablinks" onclick="openTab(event, 'bulk')" >Bulk Updater</button>
+        <button class="tablinks" onclick="openTab(event, 'settings')" id="settingsTab">Settings</button>
+      </div>
+
+    <div id="welcome" class="tabcontent">
+        <p>Given login credentials for (1) Jira and (2) Github, a USER_OR_ORGANIZATION, a REPO, and a list of valid Jira issue IDs, panta posts the issues (including titles, descriptions, and labels) to <a href="https://github.com/USER_OR_ORGANIZATION/REPO">https://github.com/USER_OR_ORGANIZATION/REPO</a>.</p>
+        <h2 id="install-">Install:</h2>
+        <ul>
+        <li>install <a href="https://nodejs.org/en/download/">nodejs</a> <em>globally</em> on your machine: </li>
+        <li>run <code>node --version</code> from your terminal to confirm that <a href="https://node.green/#ES2017">NodeJS v7.10.1</a> or newer is installed .</li>
+        <li>clone this repo: <code>git clone git@github.com:mwroffo/pantabot.git</code></li>
+        <li>run <code>npm i</code></li>
+        <li>should be good to go, but if not, please open an issue with a screenshot of your error message.</li>
+        </ul>
+        <h2 id="configuration-">Configuration:</h2>
+        <ol>
+        <li>Configure USERNAMES: Copy config-boilerplate.js as config.js. Replace the empty username fields with (1) your valid username for Jira server or Jira cloud, as well as (2) your valid GitHub username. Your new issues will show as posted by this username.</li>
+        <li>Configure PASSWORDS: Run the INSTALL-CONFIG wizard to securely pair a password with each of your usernames. <em>If a password changes, you must run this tool again.</em></li>
+        <li>In the <code>fetchXML</code> function in <code>panta.js</code>, edit the <code>url</code> variable to reflect your Jira instance&#39;s XML <code>HTTPS GET</code> link.</li>
+        <li>(Optional) If you want asignees to be ported: copy j2g-username-map-boilerplate.json as j2g-username-map.json, and list the users in your organization, mapping jira-username keys to github-username values.</li>
+        </ol>
+        <h2 id="usage-">Usage:</h2>
+        <p>notation: <required_arg> [optional_arg]</p>
+        <p>Port a specified Jira issue into <code>https://github.com/&lt;GITHUB_USERNAME_OR_ORGANIZATION&gt;/&lt;REPO&gt;</code></p>
+        <p><code>node panta j2g &lt;GITHUB_USERNAME_OR_ORGANIZATION&gt; &lt;REPO&gt; &lt;JIRA_ISSUE_CODE&gt; [MORE_JIRA_ISSUE_CODES...]</code></p>
+        <p>Example: <code>node panta j2g zowe zlux MVD-3048 MVD-3060</code></p>
+        <p>Note: &#39;MVD&#39; is an example of a project prefix.</p>
+        <p>Note: <GITHUB_USERNAME_OR_ORGANIZATION> <REPO> indicate the owner and repo where your jira issues will POST; this username is not to be confused with your authentication username.</p>
+        <h2 id="testing-">Testing:</h2>
+        <p>do <code>npm run build-for-cli</code> or test scripts will fail. In test/panta-test.js, make sure the testURL is correct for your Jira instance.</p>
+        <h2 id="namesake-">Namesake:</h2>
+        <p>A buggy Greek translation.</p>        
+    </div>
+
+    <div id="j2g" class="tabcontent">
+    <h3>Jira-to-GitHub issue porter</h3>
     <p>SETUP: Before using panta, configure your authentication by double-clicking INSTALL-CONFIG inside the INSTALL-CONFIG folder.</p>
     <p>Troubleshooting: if issue-posts say "error 404", confirm that your username/password were correctly registered with INSTALL-CONFIG. Submitting with the issue-codes field empty will cause error 400.</p>
     
@@ -25,10 +64,11 @@
       <br>
       <input type="submit" value="Post Jira issues to Github">
     </form>
+  </div>
 
-    <h2>Bulk Milestone-Updater</h2>
-    <p>Use INSTALL-CONFIG to change queried repos. Currently querying these repos:</p>
-    <strong id="ownerRepos"></strong>
+  <div id="bulk" class="tabcontent">
+    <h3>Bulk Milestone-Updater</h3>
+    <p>Specify target repos in settings.</p>
 
     <form name="ipcGetTargetIssuesForm" onSubmit="JavaScript:renderQueryTargetsContainer(event)">
     <label>Start Date</label><input type="datetime-local" name="startDate" id="startDate" value="2019-07-23T10:00:00">
@@ -41,6 +81,29 @@
       <label>New Milestone: </label> <input type="text" name="newMilestoneTitle" id="newMilestoneTitle" value="UI Test Milestone">
       <input type="submit" value="Update Milestone for queried issues">
     </form>
+  </div>
+
+  <div id="settings" class="tabcontent">
+    
+      <p>Enter username/password pairs:</p>
+      
+      <form name="ipcForm" onSubmit="JavaScript:registerSettings(event)">
+        Jira username:<br>
+        <input type="text" name="jira-username" id="jira-username" value="mroffo"><br>
+        Jira password:<br>
+        <input type="password" name="jira-password" id="jira-password" value="Laper9133"><br>
+        Github username:<br>
+        <input type="text" name="github-username" id="github-username" value="mwroffo"><br>
+        Github password:<br>
+        <input type="password" name="github-password" id="github-password" value="Oaper9133"><br>
+  
+        <p>Enter owner/repo pairs, delimited by spaces (e.g. "myUsername/myRepo someOrganization/someRepo"):</p>
+  
+        <input type="text" name="ownerRepos" id="ownerRepos" value="mwroffo/testrepo mwroffo/testrepo2 mwroffo/testrepo3"><br>
+  
+        <input type="submit" value="Register this configuration with panta">
+    </form>
+  </div>
 
   <script src='renderFile.js'></script>
 
