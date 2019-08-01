@@ -20,7 +20,7 @@ async function reloadAuth(jiraUsername, githubUsername) {
         [JIRA_CONF, GITHUB_CONF] = data;
         if (jiraUsername) JIRA_CONF.username = jiraUsername;
         if (githubUsername) GITHUB_CONF.username = githubUsername;
-        console.log(`in reloadAuth, GITHUB_CONF is`, GITHUB_CONF, `JIRA_CONF is`, JIRA_CONF);
+        // console.log(`in reloadAuth, GITHUB_CONF is`, GITHUB_CONF, `JIRA_CONF is`, JIRA_CONF);
     });
 }
 
