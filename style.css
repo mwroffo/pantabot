@@ -63,3 +63,11 @@ input[type="text"], input[type="password"] {
   display: inline-block;
   font-size: 15px;
 }
+
+#queryTargetsContainer {
+    overflow: auto;
+    border: 1px solid #ccc;
+    padding: 2px;
+    height: 20em;
+    width: 40em;
+}

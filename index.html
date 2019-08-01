@@ -71,12 +71,12 @@
       <label>and</label><input type="datetime-local" name="endDate" id="endDate" value="2019-07-24T16:00:00">
         <br>
     </form>
-    <div id="queryTargetsContainer" style="height:200px;width:400px;padding:2px; border:1px solid #ccc;overflow:auto;"></div>
+    <div id="queryTargetsContainer"></div>
 
     <form name="ipcBulkUpdateForm" onSubmit="JavaScript:sendBulkUpdateForm(event)">
       <input placeholder="Title of new milestone (e.g. &quot;1.5.0&quot;)" type="text" name="newMilestoneTitle" id="newMilestoneTitle" value=""><br>
       <input class="submit" type="submit" value="Submit Update">
-      <input class="submit" type="submit" value="Clear issues">
+      <input class="submit" type="button" value="Clear issues" id="clearIssuesButton" onclick="clearIssuesFromQueryContainer()">
     </form>
   </div>
 
