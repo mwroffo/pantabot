@@ -1,35 +1,38 @@
-# Panta.js
-Given login credentials for (1) Jira and (2) Github, a USER_OR_ORGANIZATION, a REPO, and a list of valid Jira issue IDs, panta posts the issues (including titles, descriptions, and labels) to https://github.com/USER_OR_ORGANIZATION/REPO.
+# Panta
+If you use both Jira and GitHub to manage your project, use Panta to automate your most mundane tasks:
+1. J2G: To invite collaboration on a Jira issue via GitHub, use Panta's J2G feature to port a jira issue into a specified GitHub repository, maintaining its title, description, labels, and assignee. Issues will post under the Github username entered in Settings.
+2. Bulk-Update: When launching a new release, use Panta's Bulk-Update feature to update the milestone of many issues at once.
+3. Settings: Use the settings tab to register your Jira and Github credentials and to specify target repositories for uses of Bulk-Update.
 
-## Install:
+## Installation:
+Just download and run the executable that corresponds to your operating system: TODO
+
+## Configuration:
+1. Mandatory: Open Panta and navigate to the 'Settings' tab. Enter your organization's valid base URI for your jira instance. Securely pair a password with each of your usernames for Jira/Github. If you change one or more of your passwords, be sure to do repeat this process, and don't forget to restart Panta for changes to take effect.
+2. Optional: If you want asignees to be ported: copy j2g-username-map-boilerplate.json as j2g-username-map.json, and list the users in your organization, mapping jira-username keys to github-username values.
+
+## Building from source:
 * install [nodejs](https://nodejs.org/en/download/) _globally_ on your machine: 
 * run `node --version` from your terminal to confirm that [NodeJS v7.10.1](https://node.green/#ES2017) or newer is installed .
 * clone this repo: `git clone git@github.com:mwroffo/pantabot.git`
-* run `npm i`
-* should be good to go, but if not, please open an issue with a screenshot of your error message.
+* run `npm install`
+* run `npm run build-for-ui` or `npm run build-for-cli`
+* run `npm start` to run the app, or `npm run deploy` to deploy it to an executable compatible with your system.
 
-## Configuration:
-1. Configure USERNAMES: Copy config-boilerplate.js as config.js. Replace the empty username fields with (1) your valid username for Jira server or Jira cloud, as well as (2) your valid GitHub username. Your new issues will show as posted by this username.
-2. Configure PASSWORDS: Run the INSTALL-CONFIG wizard to securely pair a password with each of your usernames. _If a password changes, you must run this tool again._
-3. In the `fetchXML` function in `panta.js`, edit the `url` variable to reflect your Jira instance's XML `HTTPS GET` link.
-4. (Optional) If you want asignees to be ported: copy j2g-username-map-boilerplate.json as j2g-username-map.json, and list the users in your organization, mapping jira-username keys to github-username values.
+## CLI Usage:
+The J2G feature is also supported by a CLI. If you want to build, extend, or simply use the CLI, do `node run build-for-cli`.
 
-## Usage:
-notation: <required_arg> [optional_arg]
-
-Port a specified Jira issue into `https://github.com/<GITHUB_USERNAME_OR_ORGANIZATION>/<REPO>`
+To port Jira issue(s) into `https://github.com/<owner>/<repo>`, run
   
-`node panta j2g <GITHUB_USERNAME_OR_ORGANIZATION> <REPO> <JIRA_ISSUE_CODE> [MORE_JIRA_ISSUE_CODES...]`
+`node panta j2g <owner> <repo> <jira_issue_id> [more_jira_issue_ids...]`
 
-Example: `node panta j2g zowe zlux MVD-3048 MVD-3060`
+Example: `node panta j2g mwroffo pantabot MVD-3048 MVD-3060`.
 
-Note: 'MVD' is an example of a project prefix.
-
-Note: <GITHUB_USERNAME_OR_ORGANIZATION> <REPO> indicate the owner and repo where your jira issues will POST; this username is not to be confused with your authentication username.
+Issues post under the username you register by using the UI's settings tab, or by directly editing config.js.
 
 ## Testing:
 
 do `npm run build-for-cli` or test scripts will fail. In test/panta-test.js, make sure the testURL is correct for your Jira instance.
 
 ## Namesake:
-A buggy Greek translation.
+Ancient Greek for 'for all time' or 'always', as in "With Panta, the latest issue-updates on your internal project are always available to your open source community."
