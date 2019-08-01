@@ -124,17 +124,43 @@ function renderTargetReposAndEntryField() {
     for (let i=0; i<ownerRepos.length; i++) {
         const ownerRepo = ownerRepos[i];
         console.log(`in renderQueryTargetsContainer ownerRepo ${i} is`, ownerRepo);
-        let label = document.createElement("ul");
-        label.name = `${ownerRepo}`;
-        label.innerHTML = `${ownerRepo}`;
-        queryTargetsContainer.appendChild(label);
+        let ownerRepoUL = document.createElement("ul");
+        ownerRepoUL.name = `${ownerRepo}`;
+        ownerRepoUL.innerHTML = `${ownerRepo}`;
+        queryTargetsContainer.appendChild(ownerRepoUL);
         
         let issueIDTextField = document.createElement("input");
         issueIDTextField.type = "text";
         issueIDTextField.name = `${ownerRepo}-id-input`;
         issueIDTextField.id = `${ownerRepo}-id-input`;
         issueIDTextField.placeholder = `... valid issueIDs`;
-        label.appendChild(issueIDTextField);
+        ownerRepoUL.appendChild(issueIDTextField);
+    }
+}
+
+function clearIssuesFromQueryContainer() {
+    console.log(`in clearIssuesFromQueryContainer, hello world`)
+    const queryTargetsContainer = document.getElementById("queryTargetsContainer");
+    const ownerRepoULs = queryTargetsContainer.children;
+    const n = ownerRepoULs.length;
+    for (let i=0; i<n; i++) {
+        const ownerRepoUL = ownerRepoULs[i];
+        clearIssuesFromOwnerRepoUL(ownerRepoUL);
+    }
+    // document.getElementById('clearIssuesButton').click();
+}
+function clearIssuesFromOwnerRepoUL(ownerRepoUL) {
+    const ownerRepoULChildren = ownerRepoUL.children;
+    const n = ownerRepoULChildren.length;
+    for (let i=n-1; i>=0; i--) {
+        const childElem = ownerRepoULChildren[i];
+        if (childElem.nodeName.toLowerCase() === 'input') {
+            childElem.value = '';
+        }
+        if (childElem.nodeName.toLowerCase() === `li`) {
+            console.log(`in clearIssuesFromOwnerRepoUL, removing childElem`, childElem);
+            ownerRepoUL.removeChild(childElem);
+        }
     }
 }
 
@@ -159,7 +185,6 @@ function getTargetIssuesFromContainer() {
     // console.log(`in getTargetIssuesFromContainer, ownerRepoULs is`, ownerRepoULs);
     for (let i=0; i<ownerRepoULs.length; i++) {
         const ownerRepoUL = ownerRepoULs[i];
-        const issuesLIs = ownerRepoUL.children;
         const ownerRepoName = ownerRepoUL.name;
         toReturn[ownerRepoName] = getEnteredIssueIDsForSingleRepo(ownerRepoUL);
     }
@@ -214,6 +239,7 @@ function getIssueLI(issue) {
     let issueLI = document.createElement("li");
     issueLI.id = `${issue.id}`;
     issueLI.innerHTML = ` ${issue.id} \'${issue.title}\'`;
+    issueLI.name = `issueLI`;
     return issueLI;
 }
 
