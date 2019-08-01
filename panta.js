@@ -2,6 +2,7 @@
 
 const { dialog } = require('electron');
 const Github = require('github-api');
+const JiraApi = require('jira-client');
 const cheerio = require('cheerio');
 const program = require('commander');
 const RequestPromise = require('request-promise');
@@ -14,12 +15,12 @@ let GITHUB_CONF = undefined;
 const pkg = require('./package.json');
 reloadAuth(undefined, undefined);
 
-function reloadAuth(jiraUsername, githubUsername) {
+async function reloadAuth(jiraUsername, githubUsername) {
     CONFIG.getAuth().then((data) => {
         [JIRA_CONF, GITHUB_CONF] = data;
         if (jiraUsername) JIRA_CONF.username = jiraUsername;
         if (githubUsername) GITHUB_CONF.username = githubUsername;
-        // console.log(`in reloadAuth, GITHUB_CONF is`, GITHUB_CONF, `JIRA_CONF is`, JIRA_CONF);
+        console.log(`in reloadAuth, GITHUB_CONF is`, GITHUB_CONF, `JIRA_CONF is`, JIRA_CONF);
     });
 }
 
@@ -66,8 +67,16 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
     if (otherIssueIDs) {
         otherIssueIDs.forEach(async issueID => {
             try {
-                const jiraIssueXML = await fetchXML(issueID, cmd);
-                const githubIssueJSON = convertXMLIssue2GithubIssue(jiraIssueXML, cmd);
+                let githubIssueJSON = undefined;
+
+                if (cmd.json) {
+                    const jiraIssueJSON = await getJiraIssueJSON(issueID, cmd);
+                    githubIssueJSON = convertJiraIssue2GithubIssue(jiraIssueJSON, cmd);
+                } else {
+                    const jiraIssueXML = await fetchXML(issueID, cmd);
+                    githubIssueJSON = convertXMLIssue2GithubIssue(jiraIssueXML, cmd);
+                }
+
                 if (cmd.post) {
                     let duplicate = checkForDuplicate(alreadyExistingIssues, githubIssueJSON.title);
                     if (!duplicate) {
@@ -85,6 +94,24 @@ async function multijira2github(orgOrUser, repo, issueID, otherIssueIDs, cmd) {
     }
     if (!postResponses.length === 0) return postResponses;
     else return undefined
+}
+
+async function getJiraIssueJSON(issueID, cmd) {
+    const jiraClient = new JiraApi({
+        protocol: 'https',
+        host: JIRA_CONF.BASE_URI,
+        username: JIRA_CONF.username,
+        password: JIRA_CONF.password,
+        apiVersion: '2',
+        strictSSL: true
+    });
+    if (cmd.debug) console.log(`in getJiraIssueJSON, jiraCilent is`, jiraClient);
+    try {
+        const issue = await jiraClient.findIssue(issueID);
+        return issue;
+    } catch (err) {
+        handleErr(err);
+    }
 }
 
 /* 
@@ -108,6 +135,23 @@ async function fetchXML(issueID, cmd) {
         err.message = `ERR thrown in function fetchXML: ${err.message}`;
         handleErr(err, cmd.uiIsOn); 
     }
+}
+
+function convertJiraIssue2GithubIssue(jiraJSON, cmd) {
+    let githubJSON = {};
+    const jiraTitle = jiraJSON.fields.summary;
+    githubJSON.title = jiraTitle.replace(/\[.*\] */g, '');
+    githubJSON.body = jiraJSON.fields.description;
+    githubJSON.labels = jiraJSON.fields.labels;
+    const jiraComponents = jiraJSON.fields.components;
+    let componentNames = jiraComponents.map(component => component.name);
+    githubJSON.labels.push(...componentNames)
+    const jiraAssignee = jiraJSON.fields.assignee.displayName;
+    if (J2G_USERNAME_MAP[jiraAssignee] !== undefined) {
+        githubJSON.assignees = [J2G_USERNAME_MAP[jiraAssignee]];
+    }
+    if (cmd.debug) console.log(`in convertJiraIssue2GithubIssue, ISSUE CONVERTED `, githubJSON);
+    return githubJSON;
 }
 
 /*

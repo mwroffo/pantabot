@@ -67,7 +67,7 @@ function buildUI() {
       } catch (err) { Panta.handleErr(err, true) }
     });
     ipcMain.on('register-auth', async function registerConfig(
-      event, jiraUsername, jiraPassword, githubUsername, githubPassword, ownerRepos) {
+      event, jiraBaseURI, jiraUsername, jiraPassword, githubUsername, githubPassword, ownerRepos) {
         try {
           const cmd = { debug:false, uiIsOn:true };
           await keytar.setPassword('jira', jiraUsername, jiraPassword);
@@ -75,10 +75,11 @@ function buildUI() {
           // todo add usernames adjustment
           await editUsernameInConfig('config.js', 'JIRA_CONF', jiraUsername, cmd)
           await editUsernameInConfig('config.js', 'GITHUB_CONF', githubUsername, cmd)
-          Panta.reloadAuth(jiraUsername, githubUsername);
+          await editBaseURIInConfig('config.js', jiraBaseURI, cmd);
           await editStringExport('config.js', 'OWNER_REPOS', ownerRepos, cmd);
+          await Panta.reloadAuth(jiraUsername, githubUsername);
           window.webContents.send('renderTargetReposAndEntryField');
-          handlePrint(`Settings updated. For password changes to take effect, restart Panta.`);
+          handlePrint(`For changes to take effect, restart Panta.`);
         } catch (err) {
           handlePrint(`in registerConfig, throwing ${err}`);
           handleErr(err);
@@ -141,6 +142,20 @@ async function editUsernameInConfig(pathToTargetFile, authObjName, newUsername, 
     return contents;
   } catch (err) {
       console.log(`in editUsernameInConfig(${pathToTargetFile}, ${authObjName}, ${newUsername}): throwing ${err}`);
+      throw err;
+  }
+}
+async function editBaseURIInConfig(pathToTargetFile, newBaseURI, cmd) {
+  try {
+    let contents = await fs.readFile(pathToTargetFile, 'utf8');
+    const regexp = new RegExp(`JIRA_CONF\.BASE_URI = .*;`, "g")
+
+    contents = contents.replace(regexp, `JIRA_CONF\.BASE_URI = \"${newBaseURI}\";`);
+
+    await fs.writeFile(pathToTargetFile, contents, {encoding: 'utf8', flag:'w'} );
+    return contents;
+  } catch (err) {
+      console.log(`in editUsernameInConfig(${pathToTargetFile}, ${authObjName}, ${newBaseURI}): throwing ${err}`);
       throw err;
   }
 }

@@ -7,12 +7,13 @@ const END_DATE = document.getElementById("endDate").value; // EST
 
 function registerSettings(event) {
     event.preventDefault()
+    const jiraBaseURI = document.getElementById("jiraBaseURI").value;
     const jiraUsername = document.getElementById("jira-username").value;
     const jiraPassword = document.getElementById("jira-password").value;
     const githubUsername = document.getElementById("github-username").value;
     const githubPassword = document.getElementById("github-password").value;
     const ownerRepos = document.getElementById("ownerRepos").value;
-    ipcRenderer.send('register-auth', jiraUsername, jiraPassword, githubUsername, githubPassword, ownerRepos);
+    ipcRenderer.send('register-auth', jiraBaseURI, jiraUsername, jiraPassword, githubUsername, githubPassword, ownerRepos);
 }
 
 async function sendForm(event) {
@@ -21,7 +22,7 @@ async function sendForm(event) {
     const repo = document.getElementById("repo").value;
     let issues = document.getElementById("jira-issue-codes").value;
     issues = issues.split(' ');
-    ipcRenderer.send('form-submission', owner, repo, issues, {post: true, debug: false, uiIsOn: true} );
+    ipcRenderer.send('form-submission', owner, repo, issues, {post: true, debug: true, uiIsOn: true, json: true} );
 }
 function removePreviouslyQueriedIssues(issueObjArray, ownerRepoUL) {
     let issueObjArrayToReturn = issueObjArray;
