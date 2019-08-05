@@ -5,6 +5,7 @@ config.js
 milestones.json
 mult-j2g-demo.wrf
 create-meta.json
+panta-bulk-update-8-1-19-demo.wrf
 mroffo-jira-permissions.json
 test-make-subtask.json
 update-assignee.json
