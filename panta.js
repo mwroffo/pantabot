@@ -421,7 +421,7 @@ async function getTargetIssues(orgOrUser, repo, startDate, endDate, cmd) {
 }
 
 /**
- * given an array of owner/repo pairs, returns an object where keys are owner/repo pairs, and values are arrays of issues from that owner/repo that satisfied getTargetIssues.
+ * given an array of owner/repo pairs, returns an object where keys are owner/repo pairs, and values are arrays of issue objects {id:"id",title:"title"} from that owner/repo that satisfied getTargetIssues.
  * part of the queryTargetIssues callchain, which uses time parameters to automatically query issues for a milestone update.
  * @param {*} ownerRepos 
  * @param {*} startDate 
@@ -602,6 +602,35 @@ async function multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilesto
 }
 
 /**
+ * given an orgOrUser, a single repo, an array of issueIDs, and a newMilestoneTitle, adds a milestone with that title to each issue `i` in `issueIDs`, where `i` exists in `orgOrUser`/`repo`.
+ * if some issueID `issue` does not exist under orgOrUser, throw err. returns the milestone ID of the milestone to which the issues were changed.
+ * @param {*} orgOrUser 
+ * @param {*} repo 
+ * @param {*} issueIDs 
+ * @param {*} newMilestoneTitle 
+ * @param {*} cmd 
+ */
+async function multiUpdateMilestoneOfIssue_v2(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd) {
+    if (!Array.isArray(issueIDs)) throw new Error(`issueIDs must be an array, but is ${typeof issueIDs}`)
+    try {
+        let milestoneID = await getMilestoneIDByTitle(orgOrUser, repo, newMilestoneTitle, cmd);
+        if (!milestoneID)
+            milestoneID = await createNewMilestoneInRepo(orgOrUser, repo, newMilestoneTitle, cmd);
+
+        for (let i=0; i<issueIDs.length; i++) {
+            let issueID = issueIDs[i];
+            const newMilestoneID = await updateMilestoneOfIssue(orgOrUser, repo, issueID, milestoneID, cmd);
+            if (cmd.debug) console.log(`in multiUpdateMilestoneOfIssue_v2(${orgOrUser}/${repo}, ${issueIDs}, ${newMilestoneTitle}): successfully added milestone ${newMilestoneTitle} which has milestoneID ${newMilestoneID} to ${orgOrUser}/${repo}/issues/${issueID}`);
+        }
+        return milestoneID;
+    } catch (err) {
+        if (cmd.debug) console.log(`in multiUpdateMilestoneOfIssue_v2(${orgOrUser}/${repo}, ${issueIDs}, ${newMilestoneTitle}): catching error ${err} and returning false` );
+        return false;
+        throw err;
+    }
+}
+
+/**
  * takes options object of format
  * const optionsExample = {
         "mwroffo/testrepo":[
@@ -637,7 +666,7 @@ async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
             const ownerRepo = ownerRepos[i];
             const [orgOrUser, repo] = ownerRepo.split('/');
             const issueIDs = issueIDArrays[i];
-            const issuesUpdated = await multiUpdateMilestoneOfIssue(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd);
+            const issuesUpdated = await multiUpdateMilestoneOfIssue_(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd);
             toReturn[ownerRepo] = issuesUpdated;
             if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues: successfully updated ${orgOrUser}/${repo}/${issueIDs} with ${newMilestoneTitle}`);
         }
@@ -649,10 +678,45 @@ async function multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd
     }
 }
 
+/**
+ * same as v1 but returns object with ownerRepo keys and newMilestoneID values.
+ * @param {*} options 
+ * @param {*} newMilestoneTitle 
+ * @param {*} cmd 
+ */
+async function multiReposUpdateMilestoneOfIssues_v2(options, newMilestoneTitle, cmd) {
+    if (!(typeof options === 'object')) throw new Error(`options must be an object, but is ${typeof object}`)
+    if (!(typeof newMilestoneTitle === 'string')) throw new Error(`newMilestoneTitle must be a string, but is ${typeof newMilestoneTitle}`)
+    try {
+        const ownerRepos = Object.keys(options);
+        const issueIDArrays = Object.values(options);
+        let toReturn = {};
+
+        for (let i=0; i<ownerRepos.length; i++) {
+            const ownerRepo = ownerRepos[i];
+            const [orgOrUser, repo] = ownerRepo.split('/');
+            const issueIDs = issueIDArrays[i];
+            const newMilestoneID = await multiUpdateMilestoneOfIssue_v2(orgOrUser, repo, issueIDs, newMilestoneTitle, cmd);
+            toReturn[ownerRepo] = newMilestoneID;
+            if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues_v2: successfully updated ${orgOrUser}/${repo}/${issueIDs} with ${newMilestoneTitle}`);
+        }
+        return toReturn;
+    } catch (err) {
+        if (cmd.debug) console.log(`in multiReposUpdateMilestoneOfIssues_v2(${options}, ${newMilestoneTitle}): catching error ${err} and throwing` );
+        // return false;
+        throw err;
+    }
+}
+
 async function doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, options, cmd) {
     try {
-        const updatesDone = await multiReposUpdateMilestoneOfIssues(options, newMilestoneTitle, cmd);
-        handlePrint(`Successfully updated milestones to \'${newMilestoneTitle}\'`, cmd.uiIsOn);
+        const updatesDone = await multiReposUpdateMilestoneOfIssues_v2(options, newMilestoneTitle, cmd);
+        let announcement = `Successfully updated milestones to \'${newMilestoneTitle}\'`;
+        for (let ownerRepo of Object.keys(updatesDone)) {
+            console.log(`ownerRepo is `, ownerRepo)
+            announcement += `\nhttps://github.com/${ownerRepo}/milestone/${updatesDone[ownerRepo]}`;
+        }
+        handlePrint(announcement, cmd.uiIsOn);
         return updatesDone;
     } catch (err) {
         handlePrint(`in doBulkMilestoneUpdate(${newMilestoneTitle}, ${startDate}, ${endDate}, ${OWNER_REPOS}): catching error ${err} and throwing`);
