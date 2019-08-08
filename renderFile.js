@@ -87,44 +87,47 @@ async function renderQueryTargetsContainer(event) {
         issueObjArray = removePreviouslyQueriedIssues(issueObjArray, ownerRepoUL);
 
         const issueEntryField = document.getElementById(`${ownerRepos[i]}-id-input`);
-        console.log(`in renderQueryTargetsContainer, issueEntryField for ${ownerRepos[i]} contains`, issueEntryField.value)
-
-        const issueIDsArray = getIssueIDsFromIssueEntryField(issueEntryField);
-        console.log(`in renderQueryTargetsContainer, issueIDsArray for ${ownerRepos[i]} contains`, issueIDsArray);
-        
-        for (let j=0; j<issueIDsArray.length; j++) {
-            const entryIssueID = issueIDsArray[j];
-            const entryIssueTitle = await Panta.getIssueTitleByID(owner, repo, entryIssueID, {debug: true, uiIsOn: true} );
-            const entryIssue = {"id":entryIssueID, "title": entryIssueTitle};
-            if (entryIssue.title === undefined) {
-                console.log(`in renderQueryTargetsContainer, silently dropping undefined issue`, entryIssue)
-                // Panta.handlePrint(`Error: Confirm that issue ${entryIssueID} exists on github.com/${owner}/${repo}.`, true)
+        if (issueEntryField) {
+            console.log(`in renderQueryTargetsContainer, issueEntryField for ${ownerRepos[i]} contains`, issueEntryField.value)
+            const issueIDsArray = getIssueIDsFromIssueEntryField(issueEntryField);
+            console.log(`in renderQueryTargetsContainer, issueIDsArray for ${ownerRepos[i]} contains`, issueIDsArray);
+            
+            for (let j=0; j<issueIDsArray.length; j++) {
+                const entryIssueID = issueIDsArray[j];
+                const entryIssueTitle = await Panta.getIssueTitleByID(owner, repo, entryIssueID, {debug: true, uiIsOn: true} );
+                const entryIssue = {"id":entryIssueID, "title": entryIssueTitle};
+                if (entryIssue.title === undefined) {
+                    console.log(`in renderQueryTargetsContainer, silently dropping undefined issue`, entryIssue)
+                    // Panta.handlePrint(`Error: Confirm that issue ${entryIssueID} exists on github.com/${owner}/${repo}.`, true)
+                }
+                else if (isDupEntryIssue(entryIssue.id, ownerRepoUL)) { // issue already exists
+                    console.log(`in renderQueryTargetsContainer, silently dropping dup issue`, entryIssue);
+                }
+                else {
+                    issueObjArray.push(entryIssue);
+                }
             }
-            else if (isDupEntryIssue(entryIssue.id, ownerRepoUL)) { // issue already exists
-                console.log(`in renderQueryTargetsContainer, silently dropping dup issue`, entryIssue);
+            for (let j=0; j<issueObjArray.length; j++) {
+                const issueObj = issueObjArray[j];
+                ownerRepoUL.appendChild(getIssueLI(issueObj));
             }
-            else {
-                issueObjArray.push(entryIssue);
-            }
-        }
-        for (let j=0; j<issueObjArray.length; j++) {
-            const issueObj = issueObjArray[j];
-            ownerRepoUL.appendChild(getIssueLI(issueObj));
+        } else {
+            console.log(`issueEntryField is`, issueEntryField)
         }
     }
 }
 
 function renderTargetReposAndEntryField() {
-    const ownerRepos = document.getElementById("ownerRepos").value.split(' ');
-    console.log(`in renderQueryTargetsContainer, OWNER_REPOS is`, ownerRepos);
+    const ownerRepos = OWNER_REPOS.split(' ');
+    console.log(`in renderTargetReposAndEntryField, OWNER_REPOS is`, ownerRepos);
     
     let queryTargetsContainer = document.getElementById("queryTargetsContainer");
     queryTargetsContainer = clearContainer(queryTargetsContainer);
-    if (queryTargetsContainer) console.log(`in renderQueryTargetsContainer queryTargetsContainer is`, queryTargetsContainer);
+    if (queryTargetsContainer) console.log(`in renderTargetReposAndEntryField queryTargetsContainer is`, queryTargetsContainer);
 
     for (let i=0; i<ownerRepos.length; i++) {
         const ownerRepo = ownerRepos[i];
-        console.log(`in renderQueryTargetsContainer ownerRepo ${i} is`, ownerRepo);
+        console.log(`in renderTargetReposAndEntryField ownerRepo ${i} is`, ownerRepo);
         let ownerRepoUL = document.createElement("ul");
         ownerRepoUL.name = `${ownerRepo}`;
         ownerRepoUL.innerHTML = `${ownerRepo}`;
@@ -137,6 +140,8 @@ function renderTargetReposAndEntryField() {
         issueIDTextField.placeholder = `... valid issueIDs`;
         ownerRepoUL.appendChild(issueIDTextField);
     }
+
+    
 }
 
 function clearIssuesFromQueryContainer() {
