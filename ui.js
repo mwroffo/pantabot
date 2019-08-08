@@ -77,8 +77,8 @@ function buildUI() {
           await editUsernameInConfig('config.js', 'GITHUB_CONF', githubUsername, cmd)
           await editBaseURIInConfig('config.js', jiraBaseURI, cmd);
           await editStringExport('config.js', 'OWNER_REPOS', ownerRepos, cmd);
-          await Panta.reloadAuth(jiraUsername, githubUsername);
-          window.webContents.send('renderTargetReposAndEntryField');
+          // await Panta.reloadAuth(jiraUsername, githubUsername);
+          // window.webContents.send('renderTargetReposAndEntryField');
           handlePrint(`For changes to take effect, restart Panta.`);
         } catch (err) {
           handlePrint(`in registerConfig, throwing ${err}`);
