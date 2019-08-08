@@ -16,5 +16,5 @@ async function getAuth() {
     toReturn.push(JIRA_CONF, GITHUB_CONF);
     return toReturn;
 }
-module.exports.OWNER_REPOS = "mwroffo/testrepo mwroffo/testrepo2 mwroffo/testrepo3";
+module.exports.OWNER_REPOS = "zowe/zlux zowe/zlux-editor mwroffo/testrepo mwroffo/testrepo2 mwroffo/testrepo3";
 module.exports.getAuth = getAuth;
