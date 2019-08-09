@@ -1,2 +1,2 @@
-echo starting panta
+echo starting panta on win
 npm start
