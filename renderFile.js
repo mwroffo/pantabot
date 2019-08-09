@@ -256,8 +256,25 @@ function clearContainer(container) {
     return container;
 }
 
+async function renderSettings() {
+    const jiraBaseURI = document.getElementById("jiraBaseURI");
+    const jiraUsername = document.getElementById("jira-username");
+    const jiraPassword = document.getElementById("jira-password");
+    const githubUsername = document.getElementById("github-username");
+    const githubPassword = document.getElementById("github-password");
+    const ownerRepos = document.getElementById("ownerRepos");
+    const [JIRA_CONF, GITHUB_CONF] = await Panta.reloadAuth();
+    jiraBaseURI.value = JIRA_CONF.BASE_URI;
+    jiraUsername.value = JIRA_CONF.username;
+    jiraPassword.value = JIRA_CONF.password;
+    githubUsername.value = GITHUB_CONF.username;
+    githubPassword.value = GITHUB_CONF.password;
+    ownerRepos.value = OWNER_REPOS;
+}
+
 (function init() {
     renderTargetReposAndEntryField();
+    renderSettings();
     document.getElementById("defaultOpen").click();
 })();
 
