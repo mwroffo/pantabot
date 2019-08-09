@@ -7,32 +7,109 @@
   </head>
   <body>
     <h1>Panta</h1>
-    <p>Note: Authentication may be specified below or in config.js. [DO NOT COMMIT config.js TO GITHUB]</p>
-    <p>Troubleshooting: if issue-posts say "error 404", confirm that your username/password are correct. Submitting with the issue-codes field empty will cause error 400.
-    </p>
+
+    <div class="tab">
+        <button class="tablinks" onclick="openTab(event, 'welcome')" id="defaultOpen">Home</button>
+        <button class="tablinks" onclick="openTab(event, 'j2g')">J2G</button>
+        <button class="tablinks" onclick="openTab(event, 'bulk')" >Bulk Updater</button>
+        <button class="tablinks" onclick="openTab(event, 'settings')" id="settingsTab">Settings</button>
+      </div>
+
+    <div id="welcome" class="tabcontent">
+        <p>If you use both Jira and GitHub to manage your project, use Panta to automate your most mundane tasks:</p>
+        <ol>
+        <li>J2G: To invite collaboration on a Jira issue via GitHub, use Panta&#39;s J2G feature to port a jira issue into a specified GitHub repository, maintaining its title, description, labels, and assignee. Issues will post under the Github username entered in Settings.</li>
+        <li>Bulk-Update: When launching a new release, use Panta&#39;s Bulk-Update feature to update the milestone of many issues at once.</li>
+        <li>Settings: Use the settings tab to register your Jira and Github credentials and to specify target repositories for uses of Bulk-Update.</li>
+        </ol>
+        <h2 id="installation-">Installation:</h2>
+        <p>Just download and run the executable that corresponds to your operating system: TODO</p>
+        <h2 id="configuration-">Configuration:</h2>
+        <ol>
+        <li>Mandatory: Open Panta and navigate to the &#39;Settings&#39; tab. Enter your organization&#39;s valid base URI for your jira instance. Securely pair a password with each of your usernames for Jira/Github. If you change one or more of your passwords, be sure to do repeat this process, and don&#39;t forget to restart Panta for changes to take effect.</li>
+        <li>Optional: If you want asignees to be ported: copy j2g-username-map-boilerplate.json as j2g-username-map.json, and list the users in your organization, mapping jira-username keys to github-username values.</li>
+        </ol>
+        <h2 id="building-from-source-">Building from source:</h2>
+        <ul>
+        <li>install <a href="https://nodejs.org/en/download/">nodejs</a> <em>globally</em> on your machine: </li>
+        <li>run <code>node --version</code> from your terminal to confirm that <a href="https://node.green/#ES2017">NodeJS v7.10.1</a> or newer is installed .</li>
+        <li>clone this repo: <code>git clone git@github.com:mwroffo/pantabot.git</code></li>
+        <li>run <code>npm install</code></li>
+        <li>run <code>npm run build-for-ui</code> or <code>npm run build-for-cli</code></li>
+        <li>run <code>npm start</code> to run the app, or <code>npm run deploy</code> to deploy it to an executable compatible with your system.</li>
+        </ul>
+        <h2 id="cli-usage-">CLI Usage:</h2>
+        <p>The J2G feature is also supported by a CLI. If you want to build, extend, or simply use the CLI, do <code>node run build-for-cli</code>.</p>
+        <p>To port Jira issue(s) into <code>https://github.com/&lt;owner&gt;/&lt;repo&gt;</code>, run</p>
+        <p><code>node panta j2g &lt;owner&gt; &lt;repo&gt; &lt;jira_issue_id&gt; [more_jira_issue_ids...]</code></p>
+        <p>Example: <code>node panta j2g mwroffo pantabot MVD-3048 MVD-3060</code>.</p>
+        <p>Issues post under the username you register by using the UI&#39;s settings tab, or by directly editing config.js.</p>
+        <h2 id="testing-">Testing:</h2>
+        <p>do <code>npm run build-for-cli</code> or test scripts will fail. In test/panta-test.js, make sure the testURL is correct for your Jira instance.</p>
+        <h2 id="namesake-">Namesake:</h2>
+        <p>Ancient Greek for &#39;for all time&#39; or &#39;always&#39;, as in &quot;With Panta, the latest issue-updates on your internal project are always available to your open source community.&quot;</p>
+
+    </div>
+
+    <div id="j2g" class="tabcontent">
+    <h3>Jira-to-GitHub</h3>
     
     <form name="ipcForm" onSubmit="JavaScript:sendForm(event)">
-      Jira username:<br>
-      <input type="text" name="jira-username" id="jira-username"><br>
-      Jira password:<br>
-      <input type="password" name="jira-password" id="jira-password"><br>
-      Github username:<br>
-      <input type="text" name="github-username" id="github-username"><br>
-      Github password:<br>
-      <input type="password" name="github-password" id="github-password"><br>
-
-      <label>Posting issue(s) to https://github.com/owner/repo</label><br>
-
-      <input type="text" name="owner" id="owner" value="mwroffo">
-      /
-      <input type="text" name="repo" id="repo" value="asdf"><br>
       
-      Jira issue codes, separated by spaces:<br>
-      For example: "MVD-3048 MVD-3060 MVD-3070"<br>
-      <input type="text" name="jira-issue-codes" id="jira-issue-codes" value="MVD-3048 MVD-3060"><br>
+      <label>Porting Jira issue(s) </label> <input type="text" name="jira-issue-codes" id="jira-issue-codes" placeholder="MVD-3048 MVD-3060" value="MVD-3048 MVD-3060">
+      to <br><label>https://github.com/</label>
+
+      <input type="text" name="owner" id="owner" value="mwroffo" placeholder="owner (e.g. google)">
+      /
+      <input type="text" name="repo" id="repo" value="testrepo" placeholder="repository (e.g. amber)"><br>
+      
+      
       <br>
-      <input type="submit" value="Post Jira issues to Github">
-  </form>
+      <input class="submit" type="submit" value="Port Jira issues to Github">
+    </form>
+  </div>
+
+  <div id="bulk" class="tabcontent">
+    <h3>Bulk Milestone-Updater</h3>
+
+    <form name="ipcGetTargetIssuesForm" onSubmit="JavaScript:renderQueryTargetsContainer(event)">
+    <input class="submit" type="submit" value="Query"><label> issues that closed between</label><input type="datetime-local" name="startDate" id="startDate" value="2019-07-23T10:00:00">
+      <label>and</label><input type="datetime-local" name="endDate" id="endDate" value="2019-07-24T16:00:00">
+        <br>
+    </form>
+    <div id="queryTargetsContainer"></div>
+
+    <form name="ipcBulkUpdateForm" onSubmit="JavaScript:sendBulkUpdateForm(event)">
+      <input placeholder="Title of new milestone (e.g. &quot;1.5.0&quot;)" type="text" name="newMilestoneTitle" id="newMilestoneTitle" value=""><br>
+      <input class="submit" type="submit" value="Submit Update">
+      <input class="submit" type="button" value="Clear issues" id="clearIssuesButton" onclick="clearIssuesFromQueryContainer()">
+    </form>
+  </div>
+
+  <div id="settings" class="tabcontent">
+    
+    <h3>Settings</h3>
+
+      <form name="ipcForm" onSubmit="JavaScript:registerSettings(event)">
+        Jira base URI:<br>
+        <input placeholder="jira.organization.com" type="text" name="jiraBaseURI" id="jiraBaseURI" value="jira.rocketsoftware.com"><br>
+        Jira username:<br>
+        <input placeholder="jmoriarty" type="text" name="jira-username" id="jira-username" value=""><br>
+        Jira password:<br>
+        <input placeholder="$tudyIn$carl3t" type="password" name="jira-password" id="jira-password" value=""><br>
+        Github username:<br>
+        <input placeholder="sholmes" type="text" name="github-username" id="github-username" value=""><br>
+        Github password:<br>
+        <input placeholder="221BBakerStLondon" type="password" name="github-password" id="github-password" value=""><br>
+  
+        <p>Bulk-Updater Target Repos</p>
+  
+        <input placeholder="zowe/zlux zowe/docs-site octokit/rest.js" type="text" name="ownerRepos" id="ownerRepos" value=""><br>
+  
+        <input class="submit" type="submit" value="Apply changes">
+        <p>(After applying changes, close and reopen Panta!)</p>
+    </form>
+  </div>
 
   <script src='renderFile.js'></script>
 

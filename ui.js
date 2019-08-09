@@ -1,10 +1,7 @@
-const { app, BrowserWindow, ipcMain  } = require('electron');
 const Panta = require('./panta.js');
-const path = require ('path');
-const fs = require('fs');
-const os = require('os');
-let GITHUB_AUTH = require('./config.js').GITHUB_AUTH;
-let JIRA_AUTH = require('./config.js').JIRA_AUTH;
+const { app, BrowserWindow, ipcMain, dialog  } = require('electron');
+const keytar = require('keytar');
+const fs = require('fs-extra')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -13,8 +10,8 @@ let window;
 function createWindow () {
   // Create the browser window.
   window = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1400,
+    height: 1000,
     webPreferences: {
       nodeIntegration: true
     },
@@ -43,7 +40,6 @@ function createWindow () {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 function buildUI() {
-
     app.on('ready', createWindow)
 
     // Quit when all windows are closed.
@@ -62,24 +58,112 @@ function buildUI() {
             createWindow()
         }
     });
-
-    ipcMain.on('form-submission', function j2gButtonHandler(event, jiraUsername, jiraPassword,
-      githubUsername, githubPassword, owner, repo, issues) {
-        // console.log('ipcMain on form-submission receives: ', jiraUsername, jiraPassword,
-        // githubUsername, githubPassword, owner, repo, issues)
-        if (jiraUsername) JIRA_AUTH.username = jiraUsername;
-        if (jiraPassword) JIRA_AUTH.password = jiraPassword;
-        if (githubUsername) GITHUB_AUTH.username = githubUsername;
-        if (githubPassword) GITHUB_AUTH.password = githubPassword;
-        const cmd = {
-          post: true,
-          debug: false
-        }
+    ipcMain.on('form-submission', function j2gButtonHandler(event, owner, repo, issues, cmd) {
         Panta.multijira2github(owner, repo, undefined, issues, cmd);
     });
-
+    ipcMain.on('bulkUpdateFormSubmission', async function bulkUpdateHandler(event, startDate, endDate, newMilestoneTitle, options, cmd) {
+      try {
+        await Panta.doBulkMilestoneUpdate(newMilestoneTitle, startDate, endDate, options, cmd);
+      } catch (err) { Panta.handleErr(err, true) }
+    });
+    ipcMain.on('register-auth', async function registerConfig(
+      event, jiraBaseURI, jiraUsername, jiraPassword, githubUsername, githubPassword, ownerRepos) {
+        try {
+          const cmd = { debug:false, uiIsOn:true };
+          if (jiraUsername && jiraPassword) {
+            await keytar.setPassword('jira', jiraUsername, jiraPassword);
+            await editUsernameInConfig('config.js', 'JIRA_CONF', jiraUsername, cmd);
+          }
+          if (jiraBaseURI) {
+            await editBaseURIInConfig('config.js', jiraBaseURI, cmd);
+          }
+          if (githubUsername && githubPassword) {
+            await keytar.setPassword('github', githubUsername, githubPassword);
+            await editUsernameInConfig('config.js', 'GITHUB_CONF', githubUsername, cmd);
+          }
+          if (ownerRepos) {
+            await editStringExport('config.js', 'OWNER_REPOS', ownerRepos, cmd);
+          }
+          // todo add usernames adjustment
+          handlePrint(`For changes to take effect, restart Panta.`);
+        } catch (err) {
+          handlePrint(`in registerConfig, throwing ${err}`);
+          handleErr(err);
+        }
+  });
 }
-module.exports.buildUI = buildUI;
+buildUI();
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+// MISC UTILS
+function handlePrint(string, messageBoxType="info") {
+  dialog.showMessageBox({
+  type: messageBoxType,
+  message: string
+  })
+}
+
+function handleErr(err) {
+  dialog.showMessageBox({
+  type: "error",
+  message: `${err.name} ${err.message}`
+  });
+  throw err;
+}
+
+/**
+* given a path to a target .js tile, edits `module.exports[fieldToExport] = \"stringToExport\";` to the end of the target file.
+* @param {*} pathToTargetFile 
+* @param {*} fieldToExport 
+* @param {*} stringToExport 
+* @param {*} cmd 
+*/
+async function editStringExport(pathToTargetFile, fieldToExport, stringToExport, cmd) {
+  try {
+      if (cmd.debug) console.log(`in editStringExport, calling readFile(${pathToTargetFile})`);
+      let contents = await fs.readFile(pathToTargetFile, 'utf8');
+      if (cmd.debug) console.log(`in editStringExport, after readFile, contents contains\n`, contents);
+      const regexp = new RegExp(`module\.exports\.${fieldToExport} = .*;`, "g")
+
+      contents = contents.replace(regexp, `module.exports.${fieldToExport} = \"${stringToExport}\";`);
+
+      await fs.writeFile(pathToTargetFile, contents, {encoding: 'utf8', flag:'w'} );
+      if (cmd.debug) console.log(`in writeFile, used regexp ${regexp} and wrote ${contents} in utf8 to ${pathToTargetFile}`);
+      return contents;
+  } catch (err) {
+      console.log(`in editStringExport(${pathToTargetFile}, ${fieldToExport}, ${stringToExport}): throwing ${err}`);
+      throw err;
+  }
+}
+async function editUsernameInConfig(pathToTargetFile, authObjName, newUsername, cmd) {
+  try {
+    if (cmd.debug) console.log(`in editUsernameInConfig, calling readFile(${pathToTargetFile})`);
+    let contents = await fs.readFile(pathToTargetFile, 'utf8');
+    if (cmd.debug) console.log(`in editUsernameInConfig, after readFile, contents contains\n`, contents);
+    const regexp = new RegExp(`${authObjName}\.username = .*;`, "g")
+
+    contents = contents.replace(regexp, `${authObjName}.username = \"${newUsername}\";`);
+
+    await fs.writeFile(pathToTargetFile, contents, {encoding: 'utf8', flag:'w'} );
+    if (cmd.debug) console.log(`in writeFile, used regexp ${regexp} and wrote ${contents} in utf8 to ${pathToTargetFile}`);
+    return contents;
+  } catch (err) {
+      console.log(`in editUsernameInConfig(${pathToTargetFile}, ${authObjName}, ${newUsername}): throwing ${err}`);
+      throw err;
+  }
+}
+async function editBaseURIInConfig(pathToTargetFile, newBaseURI, cmd) {
+  try {
+    let contents = await fs.readFile(pathToTargetFile, 'utf8');
+    const regexp = new RegExp(`JIRA_CONF\.BASE_URI = .*;`, "g")
+
+    contents = contents.replace(regexp, `JIRA_CONF\.BASE_URI = \"${newBaseURI}\";`);
+
+    await fs.writeFile(pathToTargetFile, contents, {encoding: 'utf8', flag:'w'} );
+    return contents;
+  } catch (err) {
+      console.log(`in editUsernameInConfig(${pathToTargetFile}, ${authObjName}, ${newBaseURI}): throwing ${err}`);
+      throw err;
+  }
+}
+module.exports.editStringExport = editStringExport;
+module.exports.buildUI = buildUI;

@@ -2,12 +2,18 @@
   "name": "pantabot",
   "version": "0.1.0",
   "description": "Using the login you specify in myauth.js, panta helps to syncronize Jira issues with corresponding GitHub issues.",
-  "main": "panta.js",
+  "main": "ui.js",
   "scripts": {
     "test": "mocha",
     "test:watch": "mocha --watch --reporter min",
-    "start": "electron .",
-    "deploy": "node node_modules/electron-packager/bin/electron-packager.js . --overwrite"
+    "start": "node_modules\\electron\\dist\\electron.exe .",
+    "deploy": "node node_modules/electron-packager/bin/electron-packager.js . --overwrite",
+    "installer": "node_modules\\electron\\dist\\electron.exe INSTALL-CONFIG",
+    "full-deploy": "node node_modules/electron-packager/bin/electron-packager.js . --overwrite && node node_modules/electron-packager/bin/electron-packager.js INSTALL-CONFIG --no-prune --overwrite",
+    "deploy-installer": "node node_modules/electron-packager/bin/electron-packager.js INSTALL-CONFIG --no-prune --overwrite",
+    "build-for-ui": "rmdir /Q /S node_modules & npm i & node_modules\\.bin\\electron-rebuild",
+    "build-for-cli": "npm rebuild",
+    "fix-gitignore": "git rm -r --cached . & git add . & git commit -m \"fixed untracked files\""
   },
   "repository": {
     "type": "git",
@@ -21,21 +27,20 @@
   },
   "homepage": "https://github.com/mwroffo/pantabot#readme",
   "dependencies": {
-    "@octokit/rest": "^16.28.2",
-    "bluebird": "^3.5.5",
     "cheerio": "0.22.0",
     "commander": "^2.20.0",
+    "fs-extra": "^8.1.0",
     "github-api": "^3.2.2",
-    "js-base64": "^2.5.1",
-    "path": "^0.12.7",
+    "jira-client": "^6.8.0",
+    "keytar": "^4.11.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.4"
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "mocha": "^6.1.4",
     "electron": "^5.0.6",
     "electron-packager": "^14.0.1",
-    "mocha": "^6.1.4",
-    "standard": "^12.0.1"
+    "electron-rebuild": "^1.8.5"
   }
 }
