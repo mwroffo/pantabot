@@ -14,7 +14,7 @@
     "build-for-ui": "rm -rf node_modules & npm i & node_modules\\.bin\\electron-rebuild",
     "build-for-cli": "npm rebuild",
     "fix-gitignore": "git rm -r --cached . & git add . & git commit -m \"fixed untracked files\"",
-    "fix-stash":"rm -f .git/refs/stash"
+    "fix-stash": "rm -f .git/refs/stash"
   },
   "repository": {
     "type": "git",
