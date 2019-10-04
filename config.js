@@ -8,6 +8,7 @@ async function getAuth() {
         const jiraPassword = await keytar.getPassword('jira', JIRA_CONF.username);
         JIRA_CONF.password = jiraPassword;
         let GITHUB_CONF = {};
+
         GITHUB_CONF.username = "mwroffo";
         const githubPassword = await keytar.getPassword('github', GITHUB_CONF.username);
         GITHUB_CONF.password = githubPassword;
